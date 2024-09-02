@@ -1,0 +1,12 @@
+[package]
+name = "skibidyscript"
+version = "0.1.0"
+authors = ["robiot"]
+license = "GPL-3.0-only"
+repository = "https://github.com/robiot/skibbityscript"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
