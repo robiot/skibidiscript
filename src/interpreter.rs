@@ -1,6 +1,6 @@
 // interpreter.rs
 use crate::parser::{Expr, Stmt};
-use std::{borrow::Borrow, collections::HashMap};
+use std::collections::HashMap;
 
 pub struct Interpreter {
     pub variables: HashMap<String, i64>,

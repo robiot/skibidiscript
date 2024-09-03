@@ -1,6 +1,8 @@
 // lexer.rs
 use std::collections::HashMap;
 
+use crate::error;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Cookable,
@@ -30,6 +32,7 @@ pub struct Lexer {
     input: Vec<char>,
     position: usize,
     keywords: HashMap<String, Token>,
+    pub line: usize, // Track the current line number
 }
 
 impl Lexer {
@@ -54,6 +57,7 @@ impl Lexer {
             input: input.chars().collect(),
             position: 0,
             keywords,
+            line: 1,
         }
     }
 
@@ -74,18 +78,22 @@ impl Lexer {
         }
     }
 
-    pub fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Result<Token, error::ParseError> {
         self.skip_whitespace();
 
         match self.next_char() {
-            Some('"') => self.read_string(),
-            Some('(') => Token::LeftParen,
-            Some(')') => Token::RightParen,
-            Some(',') => Token::Comma,
-            Some(ch) if ch.is_alphabetic() => self.read_identifier_or_keyword(ch),
-            Some(ch) if ch.is_digit(10) => self.read_number(ch),
-            None => Token::EOF,
-            _ => panic!("Unexpected character"),
+            Some('\n') => {
+                self.line += 1;  // Increment line number for each newline character
+                self.next_token() // Recursively call to get the next meaningful token
+            },
+            Some('"') => Ok(self.read_string()),
+            Some('(') => Ok(Token::LeftParen),
+            Some(')') => Ok(Token::RightParen),
+            Some(',') => Ok(Token::Comma),
+            Some(ch) if ch.is_alphabetic() => Ok(self.read_identifier_or_keyword(ch)),
+            Some(ch) if ch.is_digit(10) => Ok(self.read_number(ch)),
+            None => Ok(Token::EOF),
+            _ => Err(error::ParseError::Other("Unexpected character".to_string())),
         }
     }
 
