@@ -1,5 +1,3 @@
-broken
-
 cookable mew()
-    cook yap("hi")
+    cook yap("Hello")
 slay

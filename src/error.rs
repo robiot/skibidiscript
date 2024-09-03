@@ -16,56 +16,69 @@ pub enum ParseError {
         found: Token,
         line: usize,
     },
-    // UnexpectedToken {
-    //     found: Token,
-    //     line: usize,
-    //     message: String,
-    // },
-    // UnknownFunction {
-    //     name: String,
-    //     line: usize,
-    //     message: String,
-    // },
-    GeneralError {
-        // name: String,
+    UnknownFunction {
+        name: String,
         line: usize,
         message: String,
+    },
+    GeneralError {
+        found: Token,
+        line: usize,
+        message: String,
+    },
+    // Since token isnt tokenized yet
+    LexerUnexpectedChar {
+        found: String,
+        line: usize,
     },
     Other(String), // Catch-all for other types of errors
 }
 
-
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::UnexpectedToken { expected, found, line} => {
+            ParseError::UnexpectedToken {
+                expected,
+                found,
+                line,
+            } => {
                 write!(
                     f,
                     "on line {}: Expected token: {:?}, but found token: {:?}",
                     line, expected, found
                 )
             }
-            ParseError::UnknownUnexpectedToken { found, line} => {
+            ParseError::UnknownUnexpectedToken { found, line } => {
                 write!(
                     f,
                     "on line {}: found token: {:?}, but it's not expected",
                     line, found
                 )
             }
-            ParseError::GeneralError {  line, message } => {
+            ParseError::GeneralError {
+                found,
+                line,
+                message,
+            } => {
+                write!(f, "on line {}: found token {:?}, {}", line, found, message)
+            }
+            ParseError::UnknownFunction {
+                name,
+                line,
+                message,
+            } => {
                 write!(
                     f,
-                    "on line {}: {}",
-                    line, message
+                    "on line {}: {}, unknown function: {}",
+                    line, message, name
                 )
             }
-            // ParseError::UnknownFunction { name, line, message } => {
-            //     write!(
-            //         f,
-            //         "on line {}: {}\nUnknown function: {}",
-            //         line, message, name
-            //     )
-            // }
+            ParseError::LexerUnexpectedChar {
+                found,
+                line,
+            } => {
+                write!(f, "on line {}: found token {:?}, but it's not expected", line, found)
+            }
             ParseError::Other(msg) => write!(f, "Parse error: {}", msg),
         }
     }

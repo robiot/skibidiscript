@@ -81,8 +81,10 @@ impl Lexer {
     pub fn next_token(&mut self) -> Result<Token, error::ParseError> {
         self.skip_whitespace();
 
+        println!("next_token: {:?}", self.peek_char());
         match self.next_char() {
             Some('\n') => {
+                println!("Newline detected");
                 self.line += 1;  // Increment line number for each newline character
                 self.next_token() // Recursively call to get the next meaningful token
             },
@@ -93,7 +95,12 @@ impl Lexer {
             Some(ch) if ch.is_alphabetic() => Ok(self.read_identifier_or_keyword(ch)),
             Some(ch) if ch.is_digit(10) => Ok(self.read_number(ch)),
             None => Ok(Token::EOF),
-            _ => Err(error::ParseError::Other("Unexpected character".to_string())),
+            Some(ch) => match ch {
+                _ => Err(error::ParseError::LexerUnexpectedChar {
+                    found: ch.to_string(),
+                    line: self.line,
+                }),
+            },
         }
     }
 

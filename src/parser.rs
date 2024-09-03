@@ -96,19 +96,25 @@ impl<'a> Parser<'a> {
             Token::Skibbity => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
-            _ => Err(
-                error::ParseError::UnknownUnexpectedToken { found: (), line: () }
-            ),
+            _ => Err(error::ParseError::UnknownUnexpectedToken {
+                found: self.current_token.clone(),
+                line: self.lexer.line,
+            }),
         }
     }
 
     fn parse_function(&mut self) -> Result<Stmt, error::ParseError> {
-        self.expect_token(ßToken::Cookable)?;
+        self.expect_token(Token::Cookable)?;
         let name = if let Token::Ident(ident) = &self.current_token {
-            ident.clone()
+            Ok(ident.clone())
         } else {
-            panic!("Expected function name");
-        };
+            Err(error::ParseError::GeneralError {
+                found: self.current_token.clone(),
+                line: self.lexer.line,
+                message: "Expected function name".into(),
+            })
+        }?;
+
         self.next_token()?;
         self.expect_token(Token::LeftParen)?;
         self.expect_token(Token::RightParen)?;
@@ -209,11 +215,9 @@ impl<'a> Parser<'a> {
                 self.next_token()?;
                 Ok(Expr::Boolean(false))
             }
-            _ => Err(error::ParseError::UnexpectedToken {
-                expected: Token::Ident("identifier".into()),
+            _ => Err(error::ParseError::UnknownUnexpectedToken {
                 found: self.current_token.clone(),
                 line: self.lexer.line,
-                message: "Unexpected token. Unknown".into(),
             }),
         }
     }

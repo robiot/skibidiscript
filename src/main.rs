@@ -46,7 +46,7 @@ fn main() {
     let statements = match parser.parse() {
         Ok(statements) => statements,
         Err(e) => {
-            println!("parser parse error: {}", e);
+            println!("parse_error: {}", e);
 
             return;
         }
