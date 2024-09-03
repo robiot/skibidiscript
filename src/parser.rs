@@ -26,22 +26,32 @@ pub enum Stmt {
     Function {
         name: String,
         body: Vec<Stmt>,
+        line: usize,
     },
     VariableAssign {
         name: String,
         value: Expr,
+        line: usize,
     },
     While {
         condition: Expr,
         body: Vec<Stmt>,
+        line: usize,
     },
     If {
         condition: Expr,
         then_branch: Vec<Stmt>,
         else_branch: Option<Vec<Stmt>>,
+        line: usize,
     },
-    Expression(Expr),
-    Return(Expr),
+    Expression {
+        value: Expr,
+        line: usize,
+    },
+    Return {
+        value: Expr,
+        line: usize,
+    },
 }
 
 pub struct Parser<'a> {
@@ -109,9 +119,11 @@ impl<'a> Parser<'a> {
             Ok(ident.clone())
         } else {
             Err(error::ParseError::GeneralError {
-                found: self.current_token.clone(),
                 line: self.lexer.line,
-                message: "Expected function name".into(),
+                message: format!(
+                    "found token: {:?}, expected function name",
+                    self.current_token.clone()
+                ),
             })
         }?;
 
@@ -126,7 +138,11 @@ impl<'a> Parser<'a> {
 
         self.expect_token(Token::Slay)?;
 
-        Ok(Stmt::Function { name, body })
+        Ok(Stmt::Function {
+            name,
+            body,
+            line: self.lexer.line,
+        })
     }
 
     fn parse_increment(&mut self) -> Result<Stmt, error::ParseError> {
@@ -147,6 +163,7 @@ impl<'a> Parser<'a> {
                 op: "+".into(),
                 right: Box::new(Expr::Number(1)),
             },
+            line: self.lexer.line,
         })
     }
 
@@ -164,11 +181,18 @@ impl<'a> Parser<'a> {
 
             let value = self.parse_expression()?;
 
-            Ok(Stmt::VariableAssign { name, value })
+            Ok(Stmt::VariableAssign {
+                name,
+                value,
+                line: self.lexer.line,
+            })
         } else {
             let expr = self.parse_expression()?;
 
-            Ok(Stmt::Expression(expr))
+            Ok(Stmt::Expression {
+                value: expr,
+                line: self.lexer.line,
+            })
         }
     }
 
@@ -238,7 +262,11 @@ impl<'a> Parser<'a> {
 
         self.expect_token(Token::Slay)?;
 
-        Ok(Stmt::While { condition, body })
+        Ok(Stmt::While {
+            condition,
+            body,
+            line: self.lexer.line,
+        })
     }
 
     fn parse_if(&mut self) -> Result<Stmt, error::ParseError> {
@@ -273,6 +301,7 @@ impl<'a> Parser<'a> {
             condition,
             then_branch,
             else_branch,
+            line: self.lexer.line,
         })
     }
 
@@ -280,6 +309,9 @@ impl<'a> Parser<'a> {
         self.expect_token(Token::Blud)?;
         let expr = self.parse_expression()?;
 
-        Ok(Stmt::Return(expr))
+        Ok(Stmt::Return {
+            value: expr,
+            line: self.lexer.line,
+        })
     }
 }
