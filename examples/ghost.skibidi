@@ -4,7 +4,7 @@ cookable mew()
     -- Define the score and default it to 0
     score is 0
 
-    skibbity (sigma) do
+    skibidi (sigma) do
         badDoor is cook nerd.randInt(1, 3)
         
         cook yap("Infront of you are three doors.  Which one do you choose.")
