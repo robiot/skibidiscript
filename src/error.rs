@@ -19,10 +19,8 @@ pub enum ParseError {
     UnknownFunction {
         name: String,
         line: usize,
-        message: String,
     },
     GeneralError {
-        found: Token,
         line: usize,
         message: String,
     },
@@ -56,21 +54,19 @@ impl fmt::Display for ParseError {
                 )
             }
             ParseError::GeneralError {
-                found,
                 line,
                 message,
             } => {
-                write!(f, "on line {}: found token {:?}, {}", line, found, message)
+                write!(f, "on line {}: {}", line, message)
             }
             ParseError::UnknownFunction {
                 name,
                 line,
-                message,
             } => {
                 write!(
                     f,
-                    "on line {}: {}, unknown function: {}",
-                    line, message, name
+                    "on line {}: unknown function: {}",
+                    line, name
                 )
             }
             ParseError::LexerUnexpectedChar {

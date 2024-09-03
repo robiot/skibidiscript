@@ -1,8 +1,8 @@
 // main.rs
+mod error;
 mod interpreter;
 mod lexer;
 mod parser;
-mod error;
 
 use interpreter::Interpreter;
 use lexer::Lexer;
@@ -34,7 +34,7 @@ fn main() {
     // Initialize the lexer and parser
     let mut lexer = Lexer::new(&source);
 
-    let mut parser = match Parser::new(&mut lexer){
+    let mut parser = match Parser::new(&mut lexer) {
         Ok(parser) => parser,
         Err(e) => {
             println!("parser init error: {}", e);
@@ -52,8 +52,17 @@ fn main() {
         }
     };
 
+    println!("statements: {:?}", statements);
+
     let mut interpreter = Interpreter::new();
-    interpreter.interpret(statements);
+    match interpreter.interpret(statements) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("interpreter: {}", e);
+
+            return;
+        }
+    };
 
     // Run the mew function, which is the main function
     let mew_body = match interpreter.functions.get("mew") {
@@ -62,9 +71,17 @@ fn main() {
             println!("error: No mew function found. Stop edging and fix this problem.");
 
             return;
-        },
+        }
     };
+
     for stmt in mew_body {
-        interpreter.execute_statement(stmt.clone());
+        match interpreter.execute_statement(stmt.clone()) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("interpreter: {}", e);
+
+                return;
+            }
+        }
     }
 }
