@@ -83,11 +83,6 @@ impl Lexer {
 
         // println!("here: {:?}", self.peek_char());
         match self.next_char() {
-            Some('\n') => {
-                println!("Newline detected");
-                self.line += 1; // Increment line number for each newline character
-                self.next_token() // Recursively call to get the next meaningful token
-            }
             Some('"') => Ok(self.read_string()),
             Some('(') => Ok(Token::LeftParen),
             Some(')') => Ok(Token::RightParen),
