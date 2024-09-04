@@ -6,7 +6,7 @@ use crate::{
 use std::collections::HashMap;
 
 pub struct Interpreter {
-    pub variables: HashMap<String, i64>,
+    pub variables: HashMap<String, Expr>,
     pub functions: HashMap<String, Vec<Stmt>>,
     pub line: usize,
 }
@@ -48,7 +48,7 @@ impl Interpreter {
             } => {
                 self.line = line;
 
-                while self.evaluate_expression(condition.clone())? != 0 {
+                while self.evaluate_expression(condition.clone())? != Expr::Number(0) {
                     for stmt in &body {
                         self.execute_statement(stmt.clone())?;
                     }
@@ -62,7 +62,7 @@ impl Interpreter {
             } => {
                 self.line = line;
 
-                if self.evaluate_expression(condition)? != 0 {
+                if self.evaluate_expression(condition)? != Expr::Number(0) {
                     for stmt in then_branch {
                         self.execute_statement(stmt)?;
                     }
@@ -72,17 +72,11 @@ impl Interpreter {
                     }
                 }
             }
-            Stmt::Expression {
-                value: expr,
-                line,
-            } => {
+            Stmt::Expression { value: expr, line } => {
                 self.line = line;
                 self.evaluate_expression(expr)?;
             }
-            Stmt::Return {
-                value: expr,
-                line,
-            } => {
+            Stmt::Return { value: expr, line } => {
                 self.line = line;
                 let _value = self.evaluate_expression(expr);
                 // Return logic here if needed
@@ -92,37 +86,41 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn evaluate_expression(&mut self, expr: Expr) -> Result<i64, error::ParseError> {
+    pub fn evaluate_expression(&mut self, expr: Expr) -> Result<Expr, error::ParseError> {
         match expr {
-            Expr::Ident(name) => Ok(*self.variables.get(&name).unwrap_or(&0)),
-            Expr::Number(value) => Ok(value),
-            Expr::StringLiteral(_string) => Ok(0), // Handle strings differently if neded
-            Expr::Boolean(value) => {
-                if value {
-                    Ok(1)
-                } else {
-                    Ok(0)
-                }
-            }
+            Expr::Ident(name) => Ok(self.variables.get(&name).unwrap_or(&Expr::Number(0)).clone()),
+            Expr::Number(value) => Ok(Expr::Number(value)),
+            Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
+            Expr::Boolean(value) => Ok(Expr::Boolean(value)),
             Expr::FunctionCall { name, args } => self.execute_function_call(name, args),
             Expr::BinOp { left, op, right } => {
                 let left_val = self.evaluate_expression(*left)?;
                 let right_val = self.evaluate_expression(*right)?;
-                match op.as_str() {
-                    "+" => Ok(left_val + right_val),
-                    "-" => Ok(left_val - right_val),
-                    "*" => Ok(left_val * right_val),
-                    "/" => Ok(left_val / right_val),
-                    "==" => {
-                        if left_val == right_val {
-                            Ok(1)
+                match (left_val, right_val) {
+                    (Expr::Number(left_val), Expr::Number(right_val)) => match op.as_str() {
+                        "+" => Ok(Expr::Number(left_val + right_val)),
+                        "-" => Ok(Expr::Number(left_val - right_val)),
+                        "*" => Ok(Expr::Number(left_val * right_val)),
+                        "/" => Ok(Expr::Number(left_val / right_val)),
+                        "==" => Ok(Expr::Boolean(left_val == right_val)),
+                        _ => Err(error::ParseError::GeneralError {
+                            line: 0,
+                            message: format!("Unknown operator: {}", op),
+                        }),
+                    },
+                    (Expr::StringLiteral(left_val), Expr::StringLiteral(right_val)) => {
+                        if op == "+" {
+                            Ok(Expr::StringLiteral(left_val + &right_val))
                         } else {
-                            Ok(0)
+                            Err(error::ParseError::GeneralError {
+                                line: 0,
+                                message: format!("Invalid operator for strings: {}", op),
+                            })
                         }
                     }
                     _ => Err(error::ParseError::GeneralError {
                         line: 0,
-                        message: format!("Unknown operator: {}", op),
+                        message: "Type mismatch in binary operation".to_string(),
                     }),
                 }
             }
@@ -133,56 +131,61 @@ impl Interpreter {
         &mut self,
         name: String,
         args: Vec<Expr>,
-    ) -> Result<i64, error::ParseError> {
+    ) -> Result<Expr, error::ParseError> {
         match name.as_str() {
-            "nerd.randInt" => {
-                if args.len() != 2 {
-                    panic!("randInt expects 2 arguments");
-                }
-                let min = self.evaluate_expression(args[0].clone())?;
-                let max = self.evaluate_expression(args[1].clone())?;
-                if min > max {
-                    panic!("randInt min should be less than max");
-                }
-                use rand::Rng;
-                let mut rng = rand::thread_rng();
+            // "nerd.randInt" => {
+            //     if args.len() != 2 {
+            //         panic!("randInt expects 2 arguments");
+            //     }
+            //     let min = self.evaluate_expression(args[0].clone())?;
+            //     let max = self.evaluate_expression(args[1].clone())?;
+            //     if min > max {
+            //         panic!("randInt min should be less than max");
+            //     }
+            //     use rand::Rng;
+            //     let mut rng = rand::thread_rng();
 
-                Ok(rng.gen_range(min..=max))
-            }
+            //     Ok(rng.gen_range(min..=max))
+            // }
             "yap" => {
+                let mut output = String::new();
                 for arg in args {
-                    print!("{}", self.evaluate_expression(arg)?);
+                    match self.evaluate_expression(arg)? {
+                        Expr::Number(value) => output.push_str(&value.to_string()),
+                        Expr::StringLiteral(value) => output.push_str(&value),
+                        _ => {} // Ignore other types
+                    }
                 }
-                println!();
-
-                Ok(0)
+                println!("{}", output);
+                Ok(Expr::Number(0)) // Return value for function calls
             }
             "yapask" => {
+                let mut output = String::new();
                 for arg in args {
-                    print!("{}", self.evaluate_expression(arg)?);
+                    match self.evaluate_expression(arg)? {
+                        Expr::Number(value) => output.push_str(&value.to_string()),
+                        Expr::StringLiteral(value) => output.push_str(&value),
+                        _ => {} // Ignore other types
+                    }
                 }
-
                 let mut input = String::new();
                 std::io::stdin()
                     .read_line(&mut input)
                     .expect("Failed to read line");
-
-                Ok(input.trim().parse::<i64>().unwrap_or(0))
+                Ok(Expr::StringLiteral(input.trim().to_string()))
             }
             _ => {
-                // Clone the function body out of the borrowing context to avoid conflicts
-                let body = match self.functions.get(&name) {
-                    Some(body) => body.clone(),
-                    None => Err(error::ParseError::UnknownFunction {
+                if let Some(body) = self.functions.get(&name) {
+                    for stmt in body.clone() {
+                        self.execute_statement(stmt)?;
+                    }
+                    Ok(Expr::Number(0)) // Default return value for functions
+                } else {
+                    Err(error::ParseError::UnknownFunction {
                         name,
                         line: self.line,
-                    })?,
-                };
-                for stmt in body {
-                    self.execute_statement(stmt.clone())?;
+                    })
                 }
-
-                Ok(0)
             }
         }
     }

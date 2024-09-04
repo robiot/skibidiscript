@@ -1,0 +1,15 @@
+gyatt skibidi/wind
+
+window is wind.createWindow(140, 140)
+
+-- own function
+cookable createWindow()
+    window.looksMaxxing()
+
+    window.setTitle("Skibidi Game")
+slay
+
+
+cookable mew()
+    cook createWindow()
+slay

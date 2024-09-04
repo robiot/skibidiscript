@@ -4,7 +4,7 @@ use crate::{
     lexer::{Lexer, Token},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     Ident(String),
     Number(i64),
