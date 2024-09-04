@@ -72,6 +72,8 @@ impl<'a> Parser<'a> {
     fn next_token(&mut self) -> Result<(), error::ParseError> {
         self.current_token = self.lexer.next_token()?;
 
+        println!("next_token: {:?}", self.current_token);
+
         Ok(())
     }
 
@@ -92,18 +94,20 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Vec<Stmt>, error::ParseError> {
         let mut statements = Vec::new();
         while self.current_token != Token::EOF {
+            // ...debug
+            println!("current_token: {:?}", self.current_token);
             statements.push(self.parse_statement()?);
         }
 
         Ok(statements)
     }
 
-    fn parse_statement(&mut self) -> Result<Stmt, error::ParseError> {
+    fn parse_statement(&mut self) -> Result<Stmt, error::ParseError> {       
         match self.current_token {
             Token::Cookable => self.parse_function(),
             Token::Ident(ref ident) if ident == "score" => self.parse_increment(),
             Token::Ident(_) => self.parse_variable_assign_or_expression(),
-            Token::Skibbity => self.parse_while(),
+            Token::Skibidi => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
             _ => Err(error::ParseError::UnknownUnexpectedToken {
@@ -247,7 +251,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_while(&mut self) -> Result<Stmt, error::ParseError> {
-        self.expect_token(Token::Skibbity)?;
+        self.expect_token(Token::Skibidi)?;
         self.expect_token(Token::LeftParen)?;
 
         let condition = self.parse_expression()?;

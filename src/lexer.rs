@@ -8,7 +8,7 @@ pub enum Token {
     Cookable,
     Cook,
     Is,
-    Skibbity,
+    Skibidi,
     Sigma,
     Ohio,
     // Nerd,
@@ -41,7 +41,7 @@ impl Lexer {
         keywords.insert("cookable".into(), Token::Cookable);
         keywords.insert("cook".into(), Token::Cook);
         keywords.insert("is".into(), Token::Is);
-        keywords.insert("skibbity".into(), Token::Skibbity);
+        keywords.insert("skibidi".into(), Token::Skibidi);
         keywords.insert("sigma".into(), Token::Sigma);
         keywords.insert("ohio".into(), Token::Ohio);
         // keywords.insert("nerd".into(), Token::Nerd);
@@ -81,13 +81,13 @@ impl Lexer {
     pub fn next_token(&mut self) -> Result<Token, error::ParseError> {
         self.skip_whitespace();
 
-        println!("next_token: {:?}", self.peek_char());
+        // println!("here: {:?}", self.peek_char());
         match self.next_char() {
             Some('\n') => {
                 println!("Newline detected");
-                self.line += 1;  // Increment line number for each newline character
+                self.line += 1; // Increment line number for each newline character
                 self.next_token() // Recursively call to get the next meaningful token
-            },
+            }
             Some('"') => Ok(self.read_string()),
             Some('(') => Ok(Token::LeftParen),
             Some(')') => Ok(Token::RightParen),
@@ -107,6 +107,9 @@ impl Lexer {
     fn skip_whitespace(&mut self) {
         while let Some(ch) = self.peek_char() {
             if ch.is_whitespace() {
+                if ch == '\n' {
+                    self.line += 1; // Increment the line count for newlines
+                }
                 self.next_char();
             } else {
                 break;
@@ -129,6 +132,7 @@ impl Lexer {
     fn read_identifier_or_keyword(&mut self, first_char: char) -> Token {
         let mut result = String::new();
         result.push(first_char);
+
         while let Some(ch) = self.peek_char() {
             if ch.is_alphanumeric() || ch == '_' {
                 result.push(ch);
