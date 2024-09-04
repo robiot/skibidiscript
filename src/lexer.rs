@@ -106,7 +106,22 @@ impl Lexer {
                     self.line += 1; // Increment the line count for newlines
                 }
                 self.next_char();
+            } else if ch == '-' {
+                self.next_char();
+
+                if let Some('-') = self.peek_char() {
+                    self.skip_comment();
+                }
             } else {
+                break;
+            }
+        }
+    }
+
+    fn skip_comment(&mut self) {
+        while let Some(ch) = self.next_char() {
+            if ch == '\n' {
+                self.line += 1;
                 break;
             }
         }

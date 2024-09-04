@@ -270,12 +270,8 @@ impl<'a> Parser<'a> {
             });
         };
 
-        println!("function_name: {}", _function_name);
-
         // Parse the function call expression.
         let function_call = self.parse_expression()?; // This will handle the parsing of the function call.
-
-        println!("fone");
 
         // We assume that this function call is the entire statement.
         Ok(Stmt::Expression {

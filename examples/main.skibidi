@@ -1,6 +1,12 @@
+-- own function
+cookable own()
+    potato is 14
+    potato is 19
+    cook yap(potato)
+slay
+
 
 cookable mew()
-    potato is 3
-
-    cook yap("ass")
+    number is cook nerd.randInt(1,3)
+    cook own()
 slay
