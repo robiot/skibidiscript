@@ -72,7 +72,7 @@ impl<'a> Parser<'a> {
     fn next_token(&mut self) -> Result<(), error::ParseError> {
         self.current_token = self.lexer.next_token()?;
 
-        println!("next_token: {:?}", self.current_token);
+        // println!("next_token: {:?}", self.current_token);
 
         Ok(())
     }
@@ -102,11 +102,12 @@ impl<'a> Parser<'a> {
         Ok(statements)
     }
 
-    fn parse_statement(&mut self) -> Result<Stmt, error::ParseError> {       
+    fn parse_statement(&mut self) -> Result<Stmt, error::ParseError> {
         match self.current_token {
             Token::Cookable => self.parse_function(),
             Token::Ident(ref ident) if ident == "score" => self.parse_increment(),
             Token::Ident(_) => self.parse_variable_assign_or_expression(),
+            Token::Cook => self.parse_cook_statement(),
             Token::Skibidi => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
@@ -204,10 +205,10 @@ impl<'a> Parser<'a> {
         match &self.current_token {
             Token::Ident(ident) => {
                 let name = ident.clone();
-                self.next_token()?;
+                self.next_token()?; // Move past the identifier.
 
                 if self.current_token == Token::LeftParen {
-                    self.next_token()?;
+                    self.next_token()?; // Move past the '('.
                     let mut args = Vec::new();
 
                     if self.current_token != Token::RightParen {
@@ -217,7 +218,8 @@ impl<'a> Parser<'a> {
                             args.push(self.parse_expression()?);
                         }
                     }
-                    self.expect_token(Token::RightParen)?;
+
+                    self.expect_token(Token::RightParen)?; // Expect and move past the ')'.
 
                     Ok(Expr::FunctionCall { name, args })
                 } else {
@@ -248,6 +250,38 @@ impl<'a> Parser<'a> {
                 line: self.lexer.line,
             }),
         }
+    }
+
+    fn parse_cook_statement(&mut self) -> Result<Stmt, error::ParseError> {
+        println!("parse_cook_statement: {:?}", self.current_token);
+        // We've encountered 'cook', so advance the token.
+        self.expect_token(Token::Cook)?;
+
+        // The next token should be the identifier (function name).
+        let _function_name = if let Token::Ident(ident) = &self.current_token {
+            ident.clone()
+        } else {
+            return Err(error::ParseError::GeneralError {
+                line: self.lexer.line,
+                message: format!(
+                    "Expected a function name after 'cook', but found: {:?}",
+                    self.current_token
+                ),
+            });
+        };
+
+        println!("function_name: {}", _function_name);
+
+        // Parse the function call expression.
+        let function_call = self.parse_expression()?; // This will handle the parsing of the function call.
+
+        println!("fone");
+
+        // We assume that this function call is the entire statement.
+        Ok(Stmt::Expression {
+            value: function_call,
+            line: self.lexer.line,
+        })
     }
 
     fn parse_while(&mut self) -> Result<Stmt, error::ParseError> {
