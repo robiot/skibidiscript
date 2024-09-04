@@ -168,6 +168,7 @@ impl Interpreter {
                 let mut output = String::new();
                 for arg in args {
                     output.push_str(&self.expr_to_string(arg)?);
+                    output.push_str(" ");
                 }
 
                 println!("{}", output);
