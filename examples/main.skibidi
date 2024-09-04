@@ -1,6 +1,6 @@
 -- own function
 cookable own()
-    potato is ohio
+    potato is "Potato is tasty"
 
     cook yap(potato)
 slay
@@ -8,5 +8,5 @@ slay
 cookable mew()
     cook own()
 
-    -- cook yapask("Hello dis work?")
+    output is cook attemptrizz("What is your name? ")
 slay

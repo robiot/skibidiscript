@@ -3,7 +3,7 @@ use crate::{
     error,
     parser::{Expr, Stmt},
 };
-use std::collections::HashMap;
+use {std::collections::HashMap, std::io::Write};
 
 pub struct Interpreter {
     pub variables: HashMap<String, Expr>,
@@ -88,7 +88,11 @@ impl Interpreter {
 
     pub fn evaluate_expression(&mut self, expr: Expr) -> Result<Expr, error::ParseError> {
         match expr {
-            Expr::Ident(name) => Ok(self.variables.get(&name).unwrap_or(&Expr::Number(0)).clone()),
+            Expr::Ident(name) => Ok(self
+                .variables
+                .get(&name)
+                .unwrap_or(&Expr::Number(0))
+                .clone()),
             Expr::Number(value) => Ok(Expr::Number(value)),
             Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
             Expr::Boolean(value) => Ok(Expr::Boolean(value)),
@@ -127,6 +131,19 @@ impl Interpreter {
         }
     }
 
+    fn expr_to_string(&mut self, expr: Expr) -> Result<String, error::ParseError> {
+        match self.evaluate_expression(expr)? {
+            Expr::Number(value) => Ok(value.to_string()),
+            Expr::StringLiteral(value) => Ok(value),
+            Expr::Boolean(value) => Ok(if value {
+                "sigma".to_string()
+            } else {
+                "ohio".to_string()
+            }),
+            _ => Ok("".to_string()), // Return an empty string for other types
+        }
+    }
+
     pub fn execute_function_call(
         &mut self,
         name: String,
@@ -150,28 +167,29 @@ impl Interpreter {
             "yap" => {
                 let mut output = String::new();
                 for arg in args {
-                    match self.evaluate_expression(arg)? {
-                        Expr::Number(value) => output.push_str(&value.to_string()),
-                        Expr::StringLiteral(value) => output.push_str(&value),
-                        _ => {} // Ignore other types
-                    }
+                    output.push_str(&self.expr_to_string(arg)?);
                 }
+
                 println!("{}", output);
-                Ok(Expr::Number(0)) // Return value for function calls
+
+                Ok(Expr::Boolean(true)) // Return value for function calls
             }
-            "yapask" => {
+            "attemptrizz" => {
                 let mut output = String::new();
+
                 for arg in args {
-                    match self.evaluate_expression(arg)? {
-                        Expr::Number(value) => output.push_str(&value.to_string()),
-                        Expr::StringLiteral(value) => output.push_str(&value),
-                        _ => {} // Ignore other types
-                    }
+                    output.push_str(&self.expr_to_string(arg)?);
                 }
+
+                print!("{}", output);
+
+                std::io::stdout().flush().expect("Failed to flush stdout");
+
                 let mut input = String::new();
                 std::io::stdin()
                     .read_line(&mut input)
                     .expect("Failed to read line");
+
                 Ok(Expr::StringLiteral(input.trim().to_string()))
             }
             _ => {
