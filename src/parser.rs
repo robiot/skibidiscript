@@ -226,15 +226,17 @@ impl<'a> Parser<'a> {
                                 args,
                             };
                         } else {
-                            return Err(error::ParseError::GeneralError {
+                            return Err(error::ParseError::UnexpectedToken {
                                 line: self.lexer.line,
-                                message: "Expected '(' after method name".into(),
+                                expected: Token::LeftParen,
+                                found: self.current_token.clone(),
                             });
                         }
                     } else {
-                        return Err(error::ParseError::GeneralError {
+                        return Err(error::ParseError::UnexpectedToken {
                             line: self.lexer.line,
-                            message: "Expected method name after '.'".into(),
+                            expected: Token::Ident("method name after .".into()),
+                            found: self.current_token.clone(),
                         });
                     }
                 }
@@ -321,6 +323,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_import_statement(&mut self) -> Result<Stmt, error::ParseError> {
+        println!("parse_import_statement: {:?}", self.current_token);
         self.expect_token(Token::Gyatt)?; // Move past 'gyatt'
 
         let lib_name = if let Token::Ident(ident) = &self.current_token {
