@@ -12,9 +12,10 @@ pub enum Expr {
     Boolean(bool),
     FunctionCall {
         name: String,
+        object: Option<Box<Expr>>,
         args: Vec<Expr>,
     },
-    BinOp {
+    _BinOp {
         left: Box<Expr>,
         op: String,
         right: Box<Expr>,
@@ -188,23 +189,61 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self) -> Result<Expr, error::ParseError> {
-        match &self.current_token {
+        match self.current_token.clone() {  // Clone here to avoid borrowing `self`
             Token::Cook => {
-                // 'Cook' keyword should trigger a function call evaluation
                 self.expect_token(Token::Cook)?;
-                let function_call = self.parse_expression()?; // Parse the function call
-
-                // Return the function call expression
+                let function_call = self.parse_expression()?;
                 Ok(function_call)
             }
-            Token::Ident(ident) => {
-                let name = ident.clone();
-                self.next_token()?; // Move past the identifier.
-
+            Token::Ident(ref ident) => {
+                let mut expr = Expr::Ident(ident.clone());
+                self.next_token()?; // Now you can mutate `self` safely.
+    
+                while self.current_token == Token::Dot {
+                    self.next_token()?; // Move past the dot.
+    
+                    if let Token::Ident(method_name) = &self.current_token.clone() { // Clone here to avoid borrow
+                        self.next_token()?; // Move past the method name.
+    
+                        // Handle function calls
+                        if self.current_token == Token::LeftParen {
+                            self.next_token()?; // Move past '('.
+                            let mut args = Vec::new();
+    
+                            if self.current_token != Token::RightParen {
+                                args.push(self.parse_expression()?);
+                                while self.current_token == Token::Comma {
+                                    self.next_token()?;
+                                    args.push(self.parse_expression()?);
+                                }
+                            }
+    
+                            self.expect_token(Token::RightParen)?; // Now you can mutate `self` safely.
+    
+                            expr = Expr::FunctionCall {
+                                name: method_name.clone(),
+                                object: Some(Box::new(expr)),
+                                args,
+                            };
+                        } else {
+                            return Err(error::ParseError::GeneralError {
+                                line: self.lexer.line,
+                                message: "Expected '(' after method name".into(),
+                            });
+                        }
+                    } else {
+                        return Err(error::ParseError::GeneralError {
+                            line: self.lexer.line,
+                            message: "Expected method name after '.'".into(),
+                        });
+                    }
+                }
+    
+                // Handle regular function calls
                 if self.current_token == Token::LeftParen {
-                    self.next_token()?; // Move past the '('.
+                    self.next_token()?; // Move past '('.
                     let mut args = Vec::new();
-
+    
                     if self.current_token != Token::RightParen {
                         args.push(self.parse_expression()?);
                         while self.current_token == Token::Comma {
@@ -212,38 +251,45 @@ impl<'a> Parser<'a> {
                             args.push(self.parse_expression()?);
                         }
                     }
-
-                    self.expect_token(Token::RightParen)?; // Expect and move past the ')'.
-
-                    Ok(Expr::FunctionCall { name, args })
+    
+                    self.expect_token(Token::RightParen)?; // Now you can mutate `self` safely.
+    
+                    Ok(Expr::FunctionCall {
+                        name: ident.clone(),
+                        object: None,
+                        args,
+                    })
                 } else {
-                    Ok(Expr::Ident(name))
+                    Ok(expr)
                 }
             }
             Token::Number(num) => {
-                let value = *num;
+                let value = num;
                 self.next_token()?;
 
                 Ok(Expr::Number(value))
             }
-            Token::StringLiteral(string) => {
+            Token::StringLiteral(ref string) => {
                 let value = string.clone();
                 self.next_token()?;
+
                 Ok(Expr::StringLiteral(value))
             }
             Token::Sigma => {
                 self.next_token()?;
+
                 Ok(Expr::Boolean(true))
             }
             Token::Ohio => {
                 self.next_token()?;
+
                 Ok(Expr::Boolean(false))
             }
             _ => Err(error::ParseError::UnknownUnexpectedToken {
                 found: self.current_token.clone(),
                 line: self.lexer.line,
             }),
-        }
+        }    
     }
 
     fn parse_cook_statement(&mut self) -> Result<Stmt, error::ParseError> {

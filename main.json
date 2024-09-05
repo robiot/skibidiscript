@@ -1,0 +1,109 @@
+[
+  {
+    "type": "ExpressionStatement",
+    "loc": {
+      "start": {
+        "line": 3,
+        "column": 0
+      },
+      "end": {
+        "line": 3,
+        "column": 17
+      }
+    },
+    "range": [13, 30],
+    "expression": {
+      "type": "CallExpression",
+      "loc": {
+        "start": {
+          "line": 3,
+          "column": 0
+        },
+        "end": {
+          "line": 3,
+          "column": 17
+        }
+      },
+      "range": [13, 30],
+      "arguments": [
+        {
+          "type": "Literal",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 13
+            },
+            "end": {
+              "line": 3,
+              "column": 14
+            }
+          },
+          "range": [26, 27],
+          "value": 1,
+          "raw": "1"
+        },
+        {
+          "type": "Literal",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 15
+            },
+            "end": {
+              "line": 3,
+              "column": 16
+            }
+          },
+          "range": [28, 29],
+          "value": 3,
+          "raw": "3"
+        }
+      ],
+      "callee": {
+        "type": "MemberExpression",
+        "loc": {
+          "start": {
+            "line": 3,
+            "column": 0
+          },
+          "end": {
+            "line": 3,
+            "column": 12
+          }
+        },
+        "range": [13, 25],
+        "object": {
+          "type": "Identifier",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 0
+            },
+            "end": {
+              "line": 3,
+              "column": 4
+            }
+          },
+          "range": [13, 17],
+          "name": "math"
+        },
+        "property": {
+          "type": "Identifier",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 5
+            },
+            "end": {
+              "line": 3,
+              "column": 12
+            }
+          },
+          "range": [18, 25],
+          "name": "randInt"
+        },
+        "computed": false
+      }
+    }
+  }
+]

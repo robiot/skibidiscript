@@ -8,6 +8,7 @@ use {std::collections::HashMap, std::io::Write};
 pub struct Interpreter {
     pub variables: HashMap<String, Expr>,
     pub functions: HashMap<String, Vec<Stmt>>,
+    // pub libs: HashMap<String, Vec<Stmt>>,
     pub line: usize,
 }
 
@@ -96,8 +97,8 @@ impl Interpreter {
             Expr::Number(value) => Ok(Expr::Number(value)),
             Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
             Expr::Boolean(value) => Ok(Expr::Boolean(value)),
-            Expr::FunctionCall { name, args } => self.execute_function_call(name, args),
-            Expr::BinOp { left, op, right } => {
+            Expr::FunctionCall { name, object, args } => self.execute_function_call(name, object, args),
+            Expr::_BinOp { left, op, right } => {
                 let left_val = self.evaluate_expression(*left)?;
                 let right_val = self.evaluate_expression(*right)?;
                 match (left_val, right_val) {
@@ -147,8 +148,16 @@ impl Interpreter {
     pub fn execute_function_call(
         &mut self,
         name: String,
+        object: Option<Box<Expr>>,
         args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
+        if let Some(_object) = object {
+            return Err(error::ParseError::GeneralError {
+                line: self.line,
+                message: "Object calls are not supported".to_string(),
+            });
+        }
+
         match name.as_str() {
             // "nerd.randInt" => {
             //     if args.len() != 2 {
