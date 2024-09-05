@@ -1,5 +1,11 @@
+gyatt nerd
+
 cookable mew()
+    number is cook nerd.randInt(1, 100)
+
     output is cook attemptrizz("What is your name? ")
 
-    cook yap("Hello", output, ". This is sent from my own programing language.")
+    cook yap("Hello", output, ". This is sent from my own programing language.", number)
+
+    blud output
 slay

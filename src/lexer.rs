@@ -19,12 +19,14 @@ pub enum Token {
     Rizz,
     Blud,
     Ick,
+    Gyatt,
     Ident(String),
     Number(i64),
     StringLiteral(String),
     LeftParen,
     RightParen,
     Comma,
+    Dot,
     EOF,
 }
 
@@ -52,6 +54,7 @@ impl Lexer {
         keywords.insert("rizz".into(), Token::Rizz);
         keywords.insert("blud".into(), Token::Blud);
         keywords.insert("ick".into(), Token::Ick);
+        keywords.insert("gyatt".into(), Token::Gyatt);
 
         Lexer {
             input: input.chars().collect(),
@@ -87,6 +90,7 @@ impl Lexer {
             Some('(') => Ok(Token::LeftParen),
             Some(')') => Ok(Token::RightParen),
             Some(',') => Ok(Token::Comma),
+            Some('.') => Ok(Token::Dot),
             Some(ch) if ch.is_alphabetic() => Ok(self.read_identifier_or_keyword(ch)),
             Some(ch) if ch.is_digit(10) => Ok(self.read_number(ch)),
             None => Ok(Token::EOF),

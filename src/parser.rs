@@ -105,9 +105,9 @@ impl<'a> Parser<'a> {
     fn parse_statement(&mut self) -> Result<Stmt, error::ParseError> {
         match self.current_token {
             Token::Cookable => self.parse_function(),
-            Token::Ident(ref ident) if ident == "score" => self.parse_increment(),
             Token::Ident(_) => self.parse_variable_assign_or_expression(),
             Token::Cook => self.parse_cook_statement(),
+            Token::Gyatt => self.parse_import_statement(),
             Token::Skibidi => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
@@ -150,28 +150,6 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_increment(&mut self) -> Result<Stmt, error::ParseError> {
-        let name = if let Token::Ident(ident) = &self.current_token {
-            Ok(ident.clone())
-        } else {
-            Err(error::ParseError::Other("Expected variable name".into()))
-        }?;
-        self.next_token()?;
-        self.expect_token(Token::Is)?;
-        self.expect_token(Token::Ident("more".into()))?;
-        self.expect_token(Token::Ident(name.clone()))?;
-
-        Ok(Stmt::VariableAssign {
-            name: name.clone(),
-            value: Expr::BinOp {
-                left: Box::new(Expr::Ident(name.clone())),
-                op: "+".into(),
-                right: Box::new(Expr::Number(1)),
-            },
-            line: self.lexer.line,
-        })
-    }
-
     fn parse_variable_assign_or_expression(&mut self) -> Result<Stmt, error::ParseError> {
         let name = if let Token::Ident(ident) = &self.current_token {
             Ok(ident.clone())
@@ -184,9 +162,15 @@ impl<'a> Parser<'a> {
         if self.current_token == Token::Is {
             self.next_token()?;
 
-            println!("parse_variable_assign_or_expression: {:?}", self.current_token);
+            println!(
+                "parse_variable_assign_or_expression: {:?}",
+                self.current_token
+            );
             let value = self.parse_expression()?;
-            println!("parse_variable_assign_or_expression: {:?}", self.current_token);
+            println!(
+                "parse_variable_assign_or_expression: {:?}",
+                self.current_token
+            );
 
             Ok(Stmt::VariableAssign {
                 name,
@@ -208,11 +192,11 @@ impl<'a> Parser<'a> {
             Token::Cook => {
                 // 'Cook' keyword should trigger a function call evaluation
                 self.expect_token(Token::Cook)?;
-                let function_call = self.parse_expression()?;  // Parse the function call
-    
+                let function_call = self.parse_expression()?; // Parse the function call
+
                 // Return the function call expression
                 Ok(function_call)
-            },
+            }
             Token::Ident(ident) => {
                 let name = ident.clone();
                 self.next_token()?; // Move past the identifier.
@@ -286,6 +270,31 @@ impl<'a> Parser<'a> {
         // We assume that this function call is the entire statement.
         Ok(Stmt::Expression {
             value: function_call,
+            line: self.lexer.line,
+        })
+    }
+
+    fn parse_import_statement(&mut self) -> Result<Stmt, error::ParseError> {
+        self.expect_token(Token::Gyatt)?; // Move past 'gyatt'
+
+        let lib_name = if let Token::Ident(ident) = &self.current_token {
+            ident.clone()
+        } else {
+            return Err(error::ParseError::GeneralError {
+                line: self.lexer.line,
+                message: format!(
+                    "Expected a library name after 'gyatt', found {:?}",
+                    self.current_token
+                ),
+            });
+        };
+
+        self.next_token()?; // Move past the library name
+
+        // make this a import statement
+        // Now that we've parsed the 'gyatt' statement, return a placeholder statement for import
+        Ok(Stmt::Expression {
+            value: Expr::Ident(lib_name),
             line: self.lexer.line,
         })
     }
