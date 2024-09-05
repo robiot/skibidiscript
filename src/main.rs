@@ -3,6 +3,7 @@ mod error;
 mod interpreter;
 mod lexer;
 mod parser;
+mod lib;
 
 use interpreter::Interpreter;
 use lexer::Lexer;
