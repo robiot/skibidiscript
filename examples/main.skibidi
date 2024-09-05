@@ -1,16 +1,5 @@
--- own function
-cookable own()
-    potato is "Potato is tasty"
-
-    cook yap(potato)
-slay
-
 cookable mew()
-    cook own()
+    output is cook attemptrizz("What is your name? ")
 
-    cook attemptrizz("What is your name? ")
-
-    -- output is cook attemptrizz("What is your name? ")
-
-    cook yap("Hello someone. I can't get ur name because I'm a potato.")
+    cook yap("Hello", output, ". This is sent from my own programing language.")
 slay

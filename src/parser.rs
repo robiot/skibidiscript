@@ -184,7 +184,9 @@ impl<'a> Parser<'a> {
         if self.current_token == Token::Is {
             self.next_token()?;
 
+            println!("parse_variable_assign_or_expression: {:?}", self.current_token);
             let value = self.parse_expression()?;
+            println!("parse_variable_assign_or_expression: {:?}", self.current_token);
 
             Ok(Stmt::VariableAssign {
                 name,
@@ -203,6 +205,14 @@ impl<'a> Parser<'a> {
 
     fn parse_expression(&mut self) -> Result<Expr, error::ParseError> {
         match &self.current_token {
+            Token::Cook => {
+                // 'Cook' keyword should trigger a function call evaluation
+                self.expect_token(Token::Cook)?;
+                let function_call = self.parse_expression()?;  // Parse the function call
+    
+                // Return the function call expression
+                Ok(function_call)
+            },
             Token::Ident(ident) => {
                 let name = ident.clone();
                 self.next_token()?; // Move past the identifier.
