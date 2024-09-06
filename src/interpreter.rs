@@ -108,11 +108,16 @@ impl Interpreter {
 
     pub fn evaluate_expression(&mut self, expr: Expr) -> Result<Expr, error::ParseError> {
         match expr {
-            Expr::Ident(name) => Ok(self
-                .variables
-                .get(&name)
-                .unwrap_or(&Expr::Number(0))
-                .clone()),
+            Expr::Ident(name) => {
+                if let Some(value) = self.variables.get(&name) {
+                    Ok(value.clone())
+                } else {
+                    Err(error::ParseError::UnknownVariable {
+                        name,
+                        line: self.line,
+                    })
+                }
+            },
             Expr::Number(value) => Ok(Expr::Number(value)),
             Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
             Expr::Boolean(value) => Ok(Expr::Boolean(value)),

@@ -7,6 +7,10 @@ use crate::{lexer::Token, parser::Expr};
 // error.rs
 #[derive(Debug)]
 pub enum ParseError {
+    UnknownVariable {
+        name: String,
+        line: usize,
+    },
     UnexpectedToken {
         expected: Token,
         found: Token,
@@ -45,6 +49,12 @@ pub enum ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ParseError::UnknownVariable {
+                name,
+                line,
+            } => {
+                write!(f, "on line {}: unknown variable: {}", line, name)
+            },
             ParseError::UnexpectedToken {
                 expected,
                 found,

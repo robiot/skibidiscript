@@ -5,7 +5,8 @@ cookable mew()
 
     cook yap()
 
-    output is cook attemptrizz("What is your name? ")
+    question is "asdasd"
+    output is cook attemptrizz(question)
 
     cook yap("Hello", output, ". This is sent from my own programing language.", number)
 
