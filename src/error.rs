@@ -1,6 +1,6 @@
 use core::fmt;
 
-use crate::lexer::Token;
+use crate::{lexer::Token, parser::Expr};
 
 // pub type Result<T> = std::result::Result<T, ParseError>;
 
@@ -32,6 +32,11 @@ pub enum ParseError {
     ArgumentMismatch {
         expected: usize,
         found: usize,
+        line: usize,
+    },
+    TypeError {
+        expected: Expr,
+        found: Expr,
         line: usize,
     },
     Other(String), // Catch-all for other types of errors
@@ -82,6 +87,17 @@ impl fmt::Display for ParseError {
                 write!(
                     f,
                     "on line {}: expected {} arguments, but found {}",
+                    line, expected, found
+                )
+            },
+            ParseError::TypeError {
+                expected,
+                found,
+                line,
+            } => {
+                write!(
+                    f,
+                    "on line {}: expected type {:?}, but found type {:?}",
                     line, expected, found
                 )
             },

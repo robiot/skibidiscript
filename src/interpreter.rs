@@ -153,7 +153,7 @@ impl Interpreter {
         }
     }
 
-    fn expr_to_string(&mut self, expr: Expr) -> Result<String, error::ParseError> {
+    pub fn expr_to_string(&mut self, expr: Expr) -> Result<String, error::ParseError> {
         match self.evaluate_expression(expr)? {
             Expr::Number(value) => Ok(value.to_string()),
             Expr::StringLiteral(value) => Ok(value),
@@ -164,6 +164,37 @@ impl Interpreter {
             }),
             _ => Ok("".to_string()), // Return an empty string for other types
         }
+    }
+
+    pub fn expr_to_number(&mut self, expr: Expr) -> Result<i64, error::ParseError> {
+        match self.evaluate_expression(expr.clone())? {
+            Expr::Number(value) => Ok(value),
+            _ => Err(error::ParseError::TypeError {
+                expected: Expr::Number(-1),
+                found: expr.clone(),
+                line: self.line,
+            }),
+        }
+    }
+
+    // Helper function to consume arguments
+    pub fn consume_argument(
+        &self,
+        args: &Vec<Expr>,
+        expected: usize,
+        index: usize,
+    ) -> Result<Expr, error::ParseError> {
+        if index >= args.len() || args.len() != expected {
+            return Err(error::ParseError::ArgumentMismatch {
+                found: args.len(),
+                expected,
+                line: self.line,
+            });
+        }
+
+        let arg = args.get(index).unwrap().clone();
+
+        Ok(arg)
     }
 
     pub fn execute_function_call(
@@ -185,8 +216,6 @@ impl Interpreter {
                 });
             };
 
-            println!("object: {:?}", self.libs.len());
-
             // check if object exisrt in the libs
             let lib = if let Some(lib) = self.libs.get(&object) {
                 Ok(lib)
@@ -196,7 +225,6 @@ impl Interpreter {
                     message: format!("Unknown library: {}", object),
                 })
             }?;
-            
 
             let func = if let Some(function) = lib.functions.get(&name) {
                 Ok(function)
@@ -206,7 +234,7 @@ impl Interpreter {
                     message: format!("Unknown function: {} on object {}", name, object),
                 });
             }?;
-            
+
             return func(self, args.clone());
         }
 
@@ -224,15 +252,11 @@ impl Interpreter {
                 Ok(Expr::Boolean(true)) // Return value for function calls
             }
             "attemptrizz" => {
-                let mut output = String::new();
-
-                for arg in args {
-                    output.push_str(&self.expr_to_string(arg)?);
-                }
-
                 // expect only one argument
 
-                print!("{}", output);
+                let question = self.expr_to_string(self.consume_argument(&args, 1, 0)?)?;
+
+                print!("{}", question);
 
                 std::io::stdout().flush().expect("Failed to flush stdout");
 

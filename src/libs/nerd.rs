@@ -12,37 +12,18 @@ pub fn load_nerd_library() -> Library {
     Library { functions }
 }
 
-fn rand_int_builtin(
-    itp: &mut Interpreter,
-    args: Vec<Expr>,
-) -> Result<Expr, error::ParseError> {
-    // Implement the randInt function logic here
-    // if args.len() != 2 {
-    //     return Err(error::ParseError::ArgumentMismatch {
-    //         expected: 2,
-    //         found: args.len(),
-    //         line: itp.line,
-    //     });
-    // }
+fn rand_int_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, error::ParseError> {
+    let min = itp.expr_to_number(itp.consume_argument(&args, 2, 0)?)?;
+    let max = itp.expr_to_number(itp.consume_argument(&args, 2, 1)?)?;
 
-    // let min = itp.evaluate_expression(args[0].clone());
-    // let max = itp.evaluate_expression(args[1].clone());
+    if min > max {
+        return Err(error::ParseError::GeneralError {
+            line: itp.line,
+            message: "min cannot be greater than max".to_string(),
+        });
+    }
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
 
-    // let min = match min {
-    //     Ok(Expr::Number(n)) => n,
-    //     _ => {
-    //         return Err(error::ParseError::InvalidArgument {
-    //             expected: "number".to_string(),
-    //             found: "expression".to_string(),
-    //             line: itp.line,
-    //         });
-    //     }
-    // };
-    // if min > max {
-    //     panic!("randInt min should be less than max");
-    // }
-    // use rand::Rng;
-    // let mut rng = rand::thread_rng();
-    // rng.gen_range(min..=max)
-    Ok(Expr::Number(0))
+    Ok(Expr::Number(rng.gen_range(min..=max)))
 }
