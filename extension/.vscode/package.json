@@ -1,0 +1,27 @@
+{
+    "name": "shelf",
+    "displayName": "Shelf",
+    "description": "Syntax Highlighting For Shelf(.shf) Files",
+    "icon": "img/icon.png",
+    "version": "0.0.1",
+    "publisher": "robiot",
+    "engines": {
+        "vscode": "^1.55.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "shelf",
+            "aliases": ["Shelf", "shelf"],
+            "extensions": [".shf"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "shelf",
+            "scopeName": "source.shf",
+            "path": "./syntaxes/shelf.tmLanguage.json"
+        }]
+    }
+}
