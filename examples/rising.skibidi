@@ -1,5 +1,11 @@
 gyatt nerd
 
 cookable mew()
-    index is 20
+    index is 0
+
+    skibidi (index < 100) do 
+        cook yap("Hello", index)
+
+        index is index + 1
+    slay
 slay

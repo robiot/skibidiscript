@@ -66,7 +66,7 @@ impl Interpreter {
             } => {
                 self.line = line;
 
-                if self.evaluate_expression(condition)? != Expr::Number(0) {
+                if self.evaluate_expression(condition)? != Expr::Boolean(false) {
                     for stmt in then_branch {
                         self.execute_statement(stmt)?;
                     }
@@ -88,7 +88,6 @@ impl Interpreter {
             Stmt::Import { library, line } => {
                 self.line = line;
 
-                println!("importing: {:?}", library);
                 match library.as_str() {
                     "nerd" => {
                         self.libs.insert(library, libs::nerd::load_nerd_library());
@@ -337,6 +336,31 @@ impl Interpreter {
 
         // normal function call
         match name.as_str() {
+            // convert to number
+            "aura" => {
+                let arg = self.consume_argument(&args, 1, 0)?;
+
+                let number = match self.evaluate_expression(arg.clone())? {
+                    Expr::Number(value) => value,
+                    Expr::StringLiteral(value) => {
+                        value
+                            .parse::<i64>()
+                            .map_err(|_| error::ParseError::GeneralError {
+                                line: self.line,
+                                message: format!("Failed to parse {} as number", value),
+                            })?
+                    }
+                    _ => {
+                        return Err(error::ParseError::TypeError {
+                            expected: Expr::Number(-1),
+                            found: arg,
+                            line: self.line,
+                        })
+                    }
+                };
+
+                Ok(Expr::Number(number))
+            }
             "yap" => {
                 let mut output = String::new();
                 for arg in args {
