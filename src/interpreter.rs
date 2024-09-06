@@ -1,6 +1,7 @@
 // interpreter.rs
 use crate::{
     error,
+    libs::{self, Library},
     parser::{Expr, Stmt},
 };
 use {std::collections::HashMap, std::io::Write};
@@ -8,7 +9,7 @@ use {std::collections::HashMap, std::io::Write};
 pub struct Interpreter {
     pub variables: HashMap<String, Expr>,
     pub functions: HashMap<String, Vec<Stmt>>,
-    // pub libs: HashMap<String, Vec<Stmt>>,
+    pub libs: HashMap<String, Library>,
     pub line: usize,
 }
 
@@ -17,6 +18,7 @@ impl Interpreter {
         Interpreter {
             variables: HashMap::new(),
             functions: HashMap::new(),
+            libs: HashMap::new(),
             line: 0,
         }
     }
@@ -82,6 +84,23 @@ impl Interpreter {
                 let _value = self.evaluate_expression(expr);
                 // Return logic here if needed
             }
+            Stmt::Import { library, line } => {
+                self.line = line;
+
+                println!("importing: {:?}", library);
+                match library.as_str() {
+                    "nerd" => {
+                        self.libs.insert(library, libs::nerd::load_nerd_library());
+                    }
+                    // more libraries can be added here
+                    _ => {
+                        return Err(error::ParseError::GeneralError {
+                            line: self.line,
+                            message: format!("Unknown library gyatt import: {}", library),
+                        });
+                    }
+                }
+            }
         }
 
         Ok(())
@@ -97,7 +116,9 @@ impl Interpreter {
             Expr::Number(value) => Ok(Expr::Number(value)),
             Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
             Expr::Boolean(value) => Ok(Expr::Boolean(value)),
-            Expr::FunctionCall { name, object, args } => self.execute_function_call(name, object, args),
+            Expr::FunctionCall { name, object, args } => {
+                self.execute_function_call(name, object, args)
+            }
             Expr::_BinOp { left, op, right } => {
                 let left_val = self.evaluate_expression(*left)?;
                 let right_val = self.evaluate_expression(*right)?;
@@ -151,28 +172,46 @@ impl Interpreter {
         object: Option<Box<Expr>>,
         args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
-        if let Some(_object) = object {
-            return Err(error::ParseError::GeneralError {
-                line: self.line,
-                message: "Object calls are not supported".to_string(),
-            });
+        // Just library functions, for now
+        if let Some(object) = object {
+            // check that object is ident
+
+            let object = if let Expr::Ident(object) = *object {
+                object
+            } else {
+                return Err(error::ParseError::GeneralError {
+                    line: self.line,
+                    message: "Object calls of other types than IDENT are not supported".to_string(),
+                });
+            };
+
+            println!("object: {:?}", self.libs.len());
+
+            // check if object exisrt in the libs
+            let lib = if let Some(lib) = self.libs.get(&object) {
+                Ok(lib)
+            } else {
+                Err(error::ParseError::GeneralError {
+                    line: self.line,
+                    message: format!("Unknown library: {}", object),
+                })
+            }?;
+            
+
+            let func = if let Some(function) = lib.functions.get(&name) {
+                Ok(function)
+            } else {
+                return Err(error::ParseError::GeneralError {
+                    line: self.line,
+                    message: format!("Unknown function: {} on object {}", name, object),
+                });
+            }?;
+            
+            return func(self, args.clone());
         }
 
+        // normal function call
         match name.as_str() {
-            // "nerd.randInt" => {
-            //     if args.len() != 2 {
-            //         panic!("randInt expects 2 arguments");
-            //     }
-            //     let min = self.evaluate_expression(args[0].clone())?;
-            //     let max = self.evaluate_expression(args[1].clone())?;
-            //     if min > max {
-            //         panic!("randInt min should be less than max");
-            //     }
-            //     use rand::Rng;
-            //     let mut rng = rand::thread_rng();
-
-            //     Ok(rng.gen_range(min..=max))
-            // }
             "yap" => {
                 let mut output = String::new();
                 for arg in args {
@@ -190,6 +229,8 @@ impl Interpreter {
                 for arg in args {
                     output.push_str(&self.expr_to_string(arg)?);
                 }
+
+                // expect only one argument
 
                 print!("{}", output);
 

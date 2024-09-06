@@ -53,6 +53,10 @@ pub enum Stmt {
         value: Expr,
         line: usize,
     },
+    Import {
+        library: String,
+        line: usize,
+    },
 }
 
 pub struct Parser<'a> {
@@ -72,8 +76,6 @@ impl<'a> Parser<'a> {
 
     fn next_token(&mut self) -> Result<(), error::ParseError> {
         self.current_token = self.lexer.next_token()?;
-
-        // println!("next_token: {:?}", self.current_token);
 
         Ok(())
     }
@@ -96,7 +98,7 @@ impl<'a> Parser<'a> {
         let mut statements = Vec::new();
         while self.current_token != Token::EOF {
             // ...debug
-            println!("current_token: {:?}", self.current_token);
+            // println!("current_token: {:?}", self.current_token);
             statements.push(self.parse_statement()?);
         }
 
@@ -163,16 +165,8 @@ impl<'a> Parser<'a> {
         if self.current_token == Token::Is {
             self.next_token()?;
 
-            println!(
-                "parse_variable_assign_or_expression: {:?}",
-                self.current_token
-            );
             let value = self.parse_expression()?;
-            println!(
-                "parse_variable_assign_or_expression: {:?}",
-                self.current_token
-            );
-
+           
             Ok(Stmt::VariableAssign {
                 name,
                 value,
@@ -295,7 +289,6 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_cook_statement(&mut self) -> Result<Stmt, error::ParseError> {
-        println!("parse_cook_statement: {:?}", self.current_token);
         // We've encountered 'cook', so advance the token.
         self.expect_token(Token::Cook)?;
 
@@ -323,9 +316,8 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_import_statement(&mut self) -> Result<Stmt, error::ParseError> {
-        println!("parse_import_statement: {:?}", self.current_token);
         self.expect_token(Token::Gyatt)?; // Move past 'gyatt'
-
+    
         let lib_name = if let Token::Ident(ident) = &self.current_token {
             ident.clone()
         } else {
@@ -337,13 +329,11 @@ impl<'a> Parser<'a> {
                 ),
             });
         };
-
+    
         self.next_token()?; // Move past the library name
-
-        // make this a import statement
-        // Now that we've parsed the 'gyatt' statement, return a placeholder statement for import
-        Ok(Stmt::Expression {
-            value: Expr::Ident(lib_name),
+    
+        Ok(Stmt::Import {
+            library: lib_name,
             line: self.lexer.line,
         })
     }

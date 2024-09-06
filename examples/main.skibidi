@@ -1,7 +1,7 @@
 gyatt nerd
 
 cookable mew()
-    number is cook nerd.randInt(1, 100)
+    number is cook nerd.sqrt(1, 100)
 
     output is cook attemptrizz("What is your name? ")
 

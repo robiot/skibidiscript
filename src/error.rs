@@ -29,6 +29,11 @@ pub enum ParseError {
         found: String,
         line: usize,
     },
+    ArgumentMismatch {
+        expected: usize,
+        found: usize,
+        line: usize,
+    },
     Other(String), // Catch-all for other types of errors
 }
 
@@ -69,6 +74,17 @@ impl fmt::Display for ParseError {
                     line, name
                 )
             }
+            ParseError::ArgumentMismatch {
+                expected,
+                found,
+                line,
+            } => {
+                write!(
+                    f,
+                    "on line {}: expected {} arguments, but found {}",
+                    line, expected, found
+                )
+            },
             ParseError::LexerUnexpectedChar {
                 found,
                 line,

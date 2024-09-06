@@ -3,7 +3,7 @@ mod error;
 mod interpreter;
 mod lexer;
 mod parser;
-mod lib;
+mod libs;
 
 use interpreter::Interpreter;
 use lexer::Lexer;
@@ -53,7 +53,7 @@ fn main() {
         }
     };
 
-    println!("statements: {:?}", statements);
+    println!("statements: {:#?}", statements);
 
     let mut interpreter = Interpreter::new();
     match interpreter.interpret(statements) {
