@@ -15,6 +15,7 @@ pub enum Token {
     // RandInt,
     Suspect,
     Then,
+    Do,
     Slay,
     Rizz,
     Blud,
@@ -46,10 +47,9 @@ impl Lexer {
         keywords.insert("skibidi".into(), Token::Skibidi);
         keywords.insert("sigma".into(), Token::Sigma);
         keywords.insert("ohio".into(), Token::Ohio);
-        // keywords.insert("nerd".into(), Token::Nerd);
-        // keywords.insert("randInt".into(), Token::RandInt);
         keywords.insert("suspect".into(), Token::Suspect);
         keywords.insert("then".into(), Token::Then);
+        keywords.insert("do".into(), Token::Do);
         keywords.insert("slay".into(), Token::Slay);
         keywords.insert("rizz".into(), Token::Rizz);
         keywords.insert("blud".into(), Token::Blud);

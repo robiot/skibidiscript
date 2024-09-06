@@ -346,6 +346,8 @@ impl<'a> Parser<'a> {
 
         self.expect_token(Token::RightParen)?;
 
+        self.expect_token(Token::Do)?;
+
         let mut body = Vec::new();
 
         while self.current_token != Token::Slay && self.current_token != Token::EOF {

@@ -3,10 +3,7 @@ gyatt nerd
 cookable mew()
     number is cook nerd.randInt(1, 12)
 
-    cook yap()
-
-    question is "asdasd"
-    output is cook attemptrizz(question)
+    output is cook attemptrizz("What is your name? ")
 
     cook yap("Hello", output, ". This is sent from my own programing language.", number)
 
