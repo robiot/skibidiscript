@@ -28,6 +28,9 @@ pub enum ParseError {
         line: usize,
         message: String,
     },
+    DivisionByZero {
+        line: usize,
+    },
     // Since token isnt tokenized yet
     LexerUnexpectedChar {
         found: String,
@@ -87,6 +90,15 @@ impl fmt::Display for ParseError {
                     f,
                     "on line {}: unknown function: {}",
                     line, name
+                )
+            }
+            ParseError::DivisionByZero {
+                line,
+            } => {
+                write!(
+                    f,
+                    "on line {}: division by zero",
+                    line
                 )
             }
             ParseError::ArgumentMismatch {

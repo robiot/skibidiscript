@@ -1,11 +1,8 @@
 gyatt nerd
 
 cookable mew()
-    number is cook nerd.randInt(1, 12)
+    -- this should be either sigma or ohio
+    -- testvar is "asd" rizz 1
 
-    output is cook attemptrizz("What is your name? ")
-
-    cook yap("Hello", output, ". This is sent from my own programing language.", number)
-
-    blud output
+   cook yap("as")
 slay

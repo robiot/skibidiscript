@@ -15,9 +15,9 @@ pub enum Expr {
         object: Option<Box<Expr>>,
         args: Vec<Expr>,
     },
-    _BinOp {
+    BinOp {
         left: Box<Expr>,
-        op: String,
+        op: Token,
         right: Box<Expr>,
     },
 }
@@ -114,10 +114,13 @@ impl<'a> Parser<'a> {
             Token::Skibidi => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
-            _ => Err(error::ParseError::UnknownUnexpectedToken {
-                found: self.current_token.clone(),
-                line: self.lexer.line,
-            }),
+            _ => {
+                println!("erroring in parse_statment");
+                Err(error::ParseError::UnknownUnexpectedToken {
+                    found: self.current_token.clone(),
+                    line: self.lexer.line,
+                })
+            }
         }
     }
 
@@ -166,7 +169,8 @@ impl<'a> Parser<'a> {
             self.next_token()?;
 
             let value = self.parse_expression()?;
-           
+            println!("value: {:?}", value);
+
             Ok(Stmt::VariableAssign {
                 name,
                 value,
@@ -183,7 +187,46 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self) -> Result<Expr, error::ParseError> {
-        match self.current_token.clone() {  // Clone here to avoid borrowing `self`
+        self.parse_expression_with_precedence(0)
+        // self.parse_primary()
+    }
+
+    fn parse_expression_with_precedence(
+        &mut self,
+        min_precedence: u8,
+    ) -> Result<Expr, error::ParseError> {
+        // Start by parsing the primary expression (the base)
+        let mut left_expr = self.parse_primary()?;
+
+        println!("left_expr: {:?}", left_expr);
+
+        // While the current token is an operator and its precedence is higher than min_precedence
+        while let Some(op_precedence) = self.get_precedence(&self.current_token) {
+            if op_precedence < min_precedence {
+                break;
+            }
+
+            // Clone the operator token and move past it
+            let op_token = self.current_token.clone();
+            self.next_token()?;
+
+            // Parse the right-hand side expression with the appropriate precedence
+            let right_expr = self.parse_expression_with_precedence(op_precedence + 1)?;
+
+            // Combine left and right expressions into a BinOp node
+            left_expr = Expr::BinOp {
+                left: Box::new(left_expr),
+                op: op_token,
+                right: Box::new(right_expr),
+            };
+        }
+
+        Ok(left_expr)
+    }
+
+    fn parse_primary(&mut self) -> Result<Expr, error::ParseError> {
+        match self.current_token.clone() {
+            // Clone here to avoid borrowing self
             Token::Cook => {
                 self.expect_token(Token::Cook)?;
                 let function_call = self.parse_expression()?;
@@ -191,19 +234,20 @@ impl<'a> Parser<'a> {
             }
             Token::Ident(ref ident) => {
                 let mut expr = Expr::Ident(ident.clone());
-                self.next_token()?; // Now you can mutate `self` safely.
-    
+                self.next_token()?; // Now you can mutate self safely.
+
                 while self.current_token == Token::Dot {
                     self.next_token()?; // Move past the dot.
-    
-                    if let Token::Ident(method_name) = &self.current_token.clone() { // Clone here to avoid borrow
+
+                    if let Token::Ident(method_name) = &self.current_token.clone() {
+                        // Clone here to avoid borrow
                         self.next_token()?; // Move past the method name.
-    
+
                         // Handle function calls
                         if self.current_token == Token::LeftParen {
                             self.next_token()?; // Move past '('.
                             let mut args = Vec::new();
-    
+
                             if self.current_token != Token::RightParen {
                                 args.push(self.parse_expression()?);
                                 while self.current_token == Token::Comma {
@@ -211,9 +255,9 @@ impl<'a> Parser<'a> {
                                     args.push(self.parse_expression()?);
                                 }
                             }
-    
-                            self.expect_token(Token::RightParen)?; // Now you can mutate `self` safely.
-    
+
+                            self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
+
                             expr = Expr::FunctionCall {
                                 name: method_name.clone(),
                                 object: Some(Box::new(expr)),
@@ -234,12 +278,12 @@ impl<'a> Parser<'a> {
                         });
                     }
                 }
-    
+
                 // Handle regular function calls
                 if self.current_token == Token::LeftParen {
                     self.next_token()?; // Move past '('.
                     let mut args = Vec::new();
-    
+
                     if self.current_token != Token::RightParen {
                         args.push(self.parse_expression()?);
                         while self.current_token == Token::Comma {
@@ -247,9 +291,9 @@ impl<'a> Parser<'a> {
                             args.push(self.parse_expression()?);
                         }
                     }
-    
-                    self.expect_token(Token::RightParen)?; // Now you can mutate `self` safely.
-    
+
+                    self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
+
                     Ok(Expr::FunctionCall {
                         name: ident.clone(),
                         object: None,
@@ -281,11 +325,31 @@ impl<'a> Parser<'a> {
 
                 Ok(Expr::Boolean(false))
             }
+            // all math operators
+            // Token::Plus | Token::Minus | Token::Star | Token::Slash | Token::Rizz => {
+            //     let left = Box::new(Expr::Number(0)); // Default value
+            //     let op = self.current_token.clone();
+
+            //     self.next_token()?; // Move past the operator.
+            //     let right = Box::new(self.parse_expression()?);
+
+            //     Ok(Expr::BinOp { left, op, right })
+            // }
             _ => Err(error::ParseError::UnknownUnexpectedToken {
                 found: self.current_token.clone(),
                 line: self.lexer.line,
             }),
-        }    
+        }
+    }
+   
+    fn get_precedence(&self, token: &Token) -> Option<u8> {
+        match token {
+            Token::Plus | Token::Minus => Some(1),
+            Token::Star | Token::Slash => Some(2),
+            Token::Rizz => Some(0), // Equality operator
+            Token::GreaterThan | Token::LessThan => Some(1), // Relational operators
+            _ => None,
+        }
     }
 
     fn parse_cook_statement(&mut self) -> Result<Stmt, error::ParseError> {
@@ -317,7 +381,7 @@ impl<'a> Parser<'a> {
 
     fn parse_import_statement(&mut self) -> Result<Stmt, error::ParseError> {
         self.expect_token(Token::Gyatt)?; // Move past 'gyatt'
-    
+
         let lib_name = if let Token::Ident(ident) = &self.current_token {
             ident.clone()
         } else {
@@ -329,9 +393,9 @@ impl<'a> Parser<'a> {
                 ),
             });
         };
-    
+
         self.next_token()?; // Move past the library name
-    
+
         Ok(Stmt::Import {
             library: lib_name,
             line: self.lexer.line,
@@ -366,9 +430,13 @@ impl<'a> Parser<'a> {
     fn parse_if(&mut self) -> Result<Stmt, error::ParseError> {
         self.expect_token(Token::Suspect)?;
         self.expect_token(Token::LeftParen)?;
+
         let condition = self.parse_expression()?;
+
         self.expect_token(Token::RightParen)?;
+
         self.expect_token(Token::Then)?;
+
         let mut then_branch = Vec::new();
 
         while self.current_token != Token::Ick

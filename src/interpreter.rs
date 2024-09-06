@@ -1,6 +1,7 @@
 // interpreter.rs
 use crate::{
     error,
+    lexer::Token,
     libs::{self, Library},
     parser::{Expr, Stmt},
 };
@@ -51,7 +52,7 @@ impl Interpreter {
             } => {
                 self.line = line;
 
-                while self.evaluate_expression(condition.clone())? != Expr::Number(0) {
+                while self.evaluate_expression(condition.clone())? != Expr::Boolean(false) {
                     for stmt in &body {
                         self.execute_statement(stmt.clone())?;
                     }
@@ -117,41 +118,132 @@ impl Interpreter {
                         line: self.line,
                     })
                 }
-            },
+            }
             Expr::Number(value) => Ok(Expr::Number(value)),
             Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
             Expr::Boolean(value) => Ok(Expr::Boolean(value)),
             Expr::FunctionCall { name, object, args } => {
                 self.execute_function_call(name, object, args)
             }
-            Expr::_BinOp { left, op, right } => {
+            Expr::BinOp { left, op, right } => {
                 let left_val = self.evaluate_expression(*left)?;
                 let right_val = self.evaluate_expression(*right)?;
-                match (left_val, right_val) {
-                    (Expr::Number(left_val), Expr::Number(right_val)) => match op.as_str() {
-                        "+" => Ok(Expr::Number(left_val + right_val)),
-                        "-" => Ok(Expr::Number(left_val - right_val)),
-                        "*" => Ok(Expr::Number(left_val * right_val)),
-                        "/" => Ok(Expr::Number(left_val / right_val)),
-                        "==" => Ok(Expr::Boolean(left_val == right_val)),
-                        _ => Err(error::ParseError::GeneralError {
-                            line: 0,
-                            message: format!("Unknown operator: {}", op),
+
+                // Handle different types of binary operations
+                match op {
+                    Token::Plus => match (left_val.clone(), right_val.clone()) {
+                        (Expr::Number(l), Expr::Number(r)) => Ok(Expr::Number(l + r)),
+                        (Expr::StringLiteral(l), Expr::StringLiteral(r)) => {
+                            Ok(Expr::StringLiteral(l + r.as_str()))
+                        }
+                        _ => Err(error::ParseError::TypeError {
+                            expected: Expr::Number(-1),
+                            found: Expr::BinOp {
+                                left: Box::new(left_val),
+                                op,
+                                right: Box::new(right_val),
+                            },
+                            line: self.line,
                         }),
                     },
-                    (Expr::StringLiteral(left_val), Expr::StringLiteral(right_val)) => {
-                        if op == "+" {
-                            Ok(Expr::StringLiteral(left_val + &right_val))
+                    Token::Minus => {
+                        if let (Expr::Number(l), Expr::Number(r)) =
+                            (left_val.clone(), right_val.clone())
+                        {
+                            Ok(Expr::Number(l - r))
                         } else {
-                            Err(error::ParseError::GeneralError {
-                                line: 0,
-                                message: format!("Invalid operator for strings: {}", op),
+                            Err(error::ParseError::TypeError {
+                                expected: Expr::Number(-1),
+                                found: Expr::BinOp {
+                                    left: Box::new(left_val),
+                                    op,
+                                    right: Box::new(right_val),
+                                },
+                                line: self.line,
                             })
                         }
                     }
+                    Token::Star => {
+                        if let (Expr::Number(l), Expr::Number(r)) =
+                            (left_val.clone(), right_val.clone())
+                        {
+                            Ok(Expr::Number(l * r))
+                        } else {
+                            Err(error::ParseError::TypeError {
+                                expected: Expr::Number(-1),
+                                found: Expr::BinOp {
+                                    left: Box::new(left_val),
+                                    op,
+                                    right: Box::new(right_val),
+                                },
+                                line: self.line,
+                            })
+                        }
+                    }
+                    Token::Slash => {
+                        if let (Expr::Number(l), Expr::Number(r)) =
+                            (left_val.clone(), right_val.clone())
+                        {
+                            if r == 0 {
+                                Err(error::ParseError::DivisionByZero { line: self.line })
+                            } else {
+                                Ok(Expr::Number(l / r))
+                            }
+                        } else {
+                            Err(error::ParseError::TypeError {
+                                expected: Expr::Number(-1),
+                                found: Expr::BinOp {
+                                    left: Box::new(left_val),
+                                    op,
+                                    right: Box::new(right_val),
+                                },
+                                line: self.line,
+                            })
+                        }
+                    }
+                    Token::Rizz => match (left_val.clone(), right_val.clone()) {
+                        (Expr::Number(l), Expr::Number(r)) => Ok(Expr::Boolean(l == r)),
+                        (Expr::StringLiteral(l), Expr::StringLiteral(r)) => {
+                            Ok(Expr::Boolean(l == r.as_str()))
+                        }
+                        _ => Err(error::ParseError::TypeError {
+                            expected: Expr::Boolean(false),
+                            found: Expr::BinOp {
+                                left: Box::new(left_val),
+                                op,
+                                right: Box::new(right_val),
+                            },
+                            line: self.line,
+                        }),
+                    },
+                    Token::GreaterThan => match (left_val.clone(), right_val.clone()) {
+                        (Expr::Number(l), Expr::Number(r)) => Ok(Expr::Boolean(l > r)),
+                        _ => Err(error::ParseError::TypeError {
+                            expected: Expr::Boolean(false),
+                            found: Expr::BinOp {
+                                left: Box::new(left_val),
+                                op,
+                                right: Box::new(right_val),
+                            },
+                            line: self.line,
+                        }),
+                    },
+                    Token::LessThan => match (left_val.clone(), right_val.clone()) {
+                        (Expr::Number(l), Expr::Number(r)) => Ok(Expr::Boolean(l < r)),
+                        _ => Err(error::ParseError::TypeError {
+                            expected: Expr::Boolean(false),
+                            found: Expr::BinOp {
+                                left: Box::new(left_val),
+                                op,
+                                right: Box::new(right_val),
+                            },
+                            line: self.line,
+                        }),
+                    },
+                    // Add other operators as needed
                     _ => Err(error::ParseError::GeneralError {
-                        line: 0,
-                        message: "Type mismatch in binary operation".to_string(),
+                        line: self.line,
+                        message: format!("Unsupported operator: {:?}", op),
                     }),
                 }
             }

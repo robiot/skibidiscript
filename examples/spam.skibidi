@@ -1,8 +1,12 @@
 gyatt nerd
 
 cookable mew()
-    skibidi (sigma) do 
-        number is cook nerd.randInt(100, 999)
+    shouldRun is sigma
+
+    skibidi (shouldRun) do 
+        number is cook nerd.randInt(1, 10)
         cook yap("Hello", number)
+
+        shouldRun is number rizz 5
     slay
 slay
