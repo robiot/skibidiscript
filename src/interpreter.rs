@@ -31,19 +31,18 @@ impl Interpreter {
 
         Ok(())
     }
-
-    pub fn execute_statement(&mut self, stmt: Stmt) -> Result<(), error::ParseError> {
+    pub fn execute_statement(&mut self, stmt: Stmt) -> Result<Option<Expr>, error::ParseError> {
         match stmt {
             Stmt::Function { name, body, line } => {
                 self.line = line;
-
                 self.functions.insert(name, body);
+                Ok(None)
             }
             Stmt::VariableAssign { name, value, line } => {
                 self.line = line;
-
                 let evaluated = self.evaluate_expression(value)?;
                 self.variables.insert(name, evaluated);
+                Ok(None)
             }
             Stmt::While {
                 condition,
@@ -51,12 +50,17 @@ impl Interpreter {
                 line,
             } => {
                 self.line = line;
-
+    
                 while self.evaluate_expression(condition.clone())? != Expr::Boolean(false) {
                     for stmt in &body {
-                        self.execute_statement(stmt.clone())?;
+                        if let Some(return_value) = self.execute_statement(stmt.clone())? {
+                            // Handle return value from `blud`
+                            return Ok(Some(return_value));
+                        }
                     }
                 }
+    
+                Ok(None)
             }
             Stmt::If {
                 condition,
@@ -65,29 +69,37 @@ impl Interpreter {
                 line,
             } => {
                 self.line = line;
-
+    
                 if self.evaluate_expression(condition)? != Expr::Boolean(false) {
                     for stmt in then_branch {
-                        self.execute_statement(stmt)?;
+                        if let Some(return_value) = self.execute_statement(stmt)? {
+                            // Handle return value from `blud`
+                            return Ok(Some(return_value));
+                        }
                     }
                 } else if let Some(else_branch) = else_branch {
                     for stmt in else_branch {
-                        self.execute_statement(stmt)?;
+                        if let Some(return_value) = self.execute_statement(stmt)? {
+                            // Handle return value from `blud`
+                            return Ok(Some(return_value));
+                        }
                     }
                 }
+    
+                Ok(None)
             }
             Stmt::Expression { value: expr, line } => {
                 self.line = line;
                 self.evaluate_expression(expr)?;
+                Ok(None)
             }
             Stmt::Import { library, line } => {
                 self.line = line;
-
+    
                 match library.as_str() {
                     "nerd" => {
                         self.libs.insert(library, libs::nerd::load_nerd_library());
                     }
-                    // more libraries can be added here
                     _ => {
                         return Err(error::ParseError::GeneralError {
                             line: self.line,
@@ -95,16 +107,19 @@ impl Interpreter {
                         });
                     }
                 }
+    
+                Ok(None)
             }
-            _ => {
-                return Err(error::ParseError::GeneralError {
-                    line: self.line,
-                    message: "Unsupported statement".to_string(),
-                });
+            Stmt::Return { value, line } => {
+                self.line = line;
+                let return_value = self.evaluate_expression(value)?;
+                Ok(Some(return_value))
             }
+            _ => Err(error::ParseError::GeneralError {
+                line: self.line,
+                message: "Unsupported statement".to_string(),
+            }),
         }
-
-        Ok(())
     }
 
     pub fn evaluate_expression(&mut self, expr: Expr) -> Result<Expr, error::ParseError> {
@@ -295,6 +310,27 @@ impl Interpreter {
         Ok(arg)
     }
 
+    pub fn execute_user_function(&mut self, name: String, _args: Vec<Expr>) -> Result<Expr, error::ParseError> {
+        if let Some(body) = self.functions.get(&name) {
+            for stmt in body.clone() {
+                if let Stmt::Return { value, line } = stmt {
+                    self.line = line;
+
+                    return Ok(self.evaluate_expression(value)?);
+                } else {
+                    self.execute_statement(stmt)?;
+                }
+            }
+
+            Ok(Expr::Number(0)) // Default return value for functions
+        } else {
+            Err(error::ParseError::UnknownFunction {
+                name,
+                line: self.line,
+            })
+        }
+    }
+
     pub fn execute_function_call(
         &mut self,
         name: String,
@@ -391,23 +427,7 @@ impl Interpreter {
                 Ok(Expr::StringLiteral(input.trim().to_string()))
             }
             _ => {
-                if let Some(body) = self.functions.get(&name) {
-                    for stmt in body.clone() {
-                        if let Stmt::Return { value, line } = stmt {
-                            self.line = line;
-
-                            return Ok(self.evaluate_expression(value)?);
-                        }
-                        self.execute_statement(stmt)?;
-                    }
-
-                    Ok(Expr::Number(0)) // Default return value for functions
-                } else {
-                    Err(error::ParseError::UnknownFunction {
-                        name,
-                        line: self.line,
-                    })
-                }
+                self.execute_user_function(name, args)
             }
         }
     }

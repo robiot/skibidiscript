@@ -66,23 +66,12 @@ fn main() {
     };
 
     // Run the mew function, which is the main function
-    let mew_body = match interpreter.functions.get("mew") {
-        Some(body) => body.clone(),
-        None => {
-            println!("error: No mew function found. Stop edging and fix this problem.");
+    match interpreter.execute_user_function("mew".to_string(), vec![]) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("interpreter: {}", e);
 
             return;
         }
     };
-
-    for stmt in mew_body {
-        match interpreter.execute_statement(stmt.clone()) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("interpreter: {}", e);
-
-                return;
-            }
-        }
-    }
 }

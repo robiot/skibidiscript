@@ -6,13 +6,11 @@ slay
 
 
 cookable mew()
-    output is cook hello()
+    cook yap("Hello", cook hello())
 
-    cook yap("Hello", output)
+    skibidi (sigma) do 
+        number is cook nerd.randInt(1, 10000)
 
-    -- skibidi (sigma) do 
-    --     number is cook nerd.randInt(1, 10000)
-
-    --     blud
-    -- slay
+        blud
+    slay
 slay

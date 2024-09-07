@@ -58,6 +58,9 @@ pub enum Stmt {
         library: String,
         line: usize,
     },
+    Continue {
+        line: usize,
+    },
 }
 
 pub struct Parser<'a> {
@@ -117,6 +120,7 @@ impl<'a> Parser<'a> {
             Token::Skibidi => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
+            Token::Ghost => self.parse_continue(),
             _ => Err(error::ParseError::UnknownUnexpectedToken {
                 found: self.current_token.clone(),
                 line: self.lexer.line,
@@ -472,6 +476,14 @@ impl<'a> Parser<'a> {
 
         Ok(Stmt::Return {
             value: expr,
+            line: self.lexer.line,
+        })
+    }
+
+    fn parse_continue(&mut self) -> Result<Stmt, error::ParseError> {
+        self.expect_token(Token::Ghost)?;
+    
+        Ok(Stmt::Continue {
             line: self.lexer.line,
         })
     }

@@ -6,9 +6,7 @@ cookable mew()
     -- Define the score and default it to 0
     score is 0
 
-    isRunning is sigma
-
-    skibidi (isRunning) do
+    skibidi (sigma) do
         badDoor is cook nerd.randInt(1, 3)
 
         cook yap("Infront of you are three doors.  Which one do you choose.")
@@ -16,7 +14,8 @@ cookable mew()
 
         suspect(userDoor rizz badDoor) then 
             cook yap("BOOO! A ghost. You lost with a score of: ", score)
-            isRunning is ohio
+            
+            blud 0
         ick
             cook yap("Not a ghost. You survived")
             score is score + 1
