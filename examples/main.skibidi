@@ -1,14 +1,5 @@
 gyatt nerd
 
 cookable mew()
-    -- this should be either sigma or ohio
-    -- testvar is "asd" rizz 1
-
-    name is cook attemptrizz("Hey shawty, what's your name? > ")
-
-    suspect(name rizz "robiot") then
-        cook yap("Gm gm TOP G", name)
-    ick
-        cook yap("Noob", name)
-    slay
+    cook yap("Gm gm TOP G"+"a")
 slay

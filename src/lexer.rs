@@ -10,6 +10,7 @@ pub enum Token {
     Is,
     Skibidi,
     Sigma,
+    NewLine,
     Ohio,
     Suspect,
     Then,
@@ -17,6 +18,7 @@ pub enum Token {
     Slay,
     Rizz,
     Blud,
+    Ghost,
     Ick,
     Gyatt,
     Ident(String),
@@ -57,6 +59,7 @@ impl Lexer {
         keywords.insert("slay".into(), Token::Slay);
         keywords.insert("rizz".into(), Token::Rizz);
         keywords.insert("blud".into(), Token::Blud);
+        keywords.insert("ghost".into(), Token::Ghost);
         keywords.insert("ick".into(), Token::Ick);
         keywords.insert("gyatt".into(), Token::Gyatt);
 
@@ -95,6 +98,7 @@ impl Lexer {
             Some(')') => Ok(Token::RightParen),
             Some(',') => Ok(Token::Comma),
             Some('.') => Ok(Token::Dot),
+            Some('\n') => Ok(Token::NewLine),
             // meth operators
             Some('+') => Ok(Token::Plus),
             Some('-') => Ok(Token::Minus),

@@ -53,7 +53,7 @@ fn main() {
         }
     };
 
-    println!("statements: {:#?}", statements);
+    // println!("statements: {:#?}", statements);
 
     let mut interpreter = Interpreter::new();
     match interpreter.interpret(statements) {

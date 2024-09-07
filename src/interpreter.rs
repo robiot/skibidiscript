@@ -80,11 +80,6 @@ impl Interpreter {
                 self.line = line;
                 self.evaluate_expression(expr)?;
             }
-            Stmt::Return { value: expr, line } => {
-                self.line = line;
-                let _value = self.evaluate_expression(expr);
-                // Return logic here if needed
-            }
             Stmt::Import { library, line } => {
                 self.line = line;
 
@@ -100,6 +95,12 @@ impl Interpreter {
                         });
                     }
                 }
+            }
+            _ => {
+                return Err(error::ParseError::GeneralError {
+                    line: self.line,
+                    message: "Unsupported statement".to_string(),
+                });
             }
         }
 
@@ -121,6 +122,7 @@ impl Interpreter {
             Expr::Number(value) => Ok(Expr::Number(value)),
             Expr::StringLiteral(string) => Ok(Expr::StringLiteral(string)), // Handle strings differently if neded
             Expr::Boolean(value) => Ok(Expr::Boolean(value)),
+            // Expr::None => Ok(Expr::None),
             Expr::FunctionCall { name, object, args } => {
                 self.execute_function_call(name, object, args)
             }
@@ -391,8 +393,14 @@ impl Interpreter {
             _ => {
                 if let Some(body) = self.functions.get(&name) {
                     for stmt in body.clone() {
+                        if let Stmt::Return { value, line } = stmt {
+                            self.line = line;
+
+                            return Ok(self.evaluate_expression(value)?);
+                        }
                         self.execute_statement(stmt)?;
                     }
+
                     Ok(Expr::Number(0)) // Default return value for functions
                 } else {
                     Err(error::ParseError::UnknownFunction {

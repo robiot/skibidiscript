@@ -22,6 +22,7 @@ fn rand_int_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, erro
             message: "min cannot be greater than max".to_string(),
         });
     }
+
     use rand::Rng;
     let mut rng = rand::thread_rng();
 

@@ -10,6 +10,7 @@ pub enum Expr {
     Number(i64),
     StringLiteral(String),
     Boolean(bool),
+    // None,
     FunctionCall {
         name: String,
         object: Option<Box<Expr>>,
@@ -99,7 +100,9 @@ impl<'a> Parser<'a> {
         while self.current_token != Token::EOF {
             // ...debug
             // println!("current_token: {:?}", self.current_token);
-            statements.push(self.parse_statement()?);
+
+            let stmt = self.parse_statement()?;
+            statements.push(stmt);
         }
 
         Ok(statements)
@@ -114,13 +117,10 @@ impl<'a> Parser<'a> {
             Token::Skibidi => self.parse_while(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
-            _ => {
-                println!("erroring in parse_statment");
-                Err(error::ParseError::UnknownUnexpectedToken {
-                    found: self.current_token.clone(),
-                    line: self.lexer.line,
-                })
-            }
+            _ => Err(error::ParseError::UnknownUnexpectedToken {
+                found: self.current_token.clone(),
+                line: self.lexer.line,
+            }),
         }
     }
 
@@ -169,7 +169,7 @@ impl<'a> Parser<'a> {
             self.next_token()?;
 
             let value = self.parse_expression()?;
-            println!("value: {:?}", value);
+            // println!("value: {:?}", value);
 
             Ok(Stmt::VariableAssign {
                 name,
@@ -197,8 +197,6 @@ impl<'a> Parser<'a> {
     ) -> Result<Expr, error::ParseError> {
         // Start by parsing the primary expression (the base)
         let mut left_expr = self.parse_primary()?;
-
-        println!("left_expr: {:?}", left_expr);
 
         // While the current token is an operator and its precedence is higher than min_precedence
         while let Some(op_precedence) = self.get_precedence(&self.current_token) {
@@ -341,7 +339,7 @@ impl<'a> Parser<'a> {
             }),
         }
     }
-   
+
     fn get_precedence(&self, token: &Token) -> Option<u8> {
         match token {
             Token::Plus | Token::Minus => Some(1),
@@ -469,6 +467,7 @@ impl<'a> Parser<'a> {
 
     fn parse_return(&mut self) -> Result<Stmt, error::ParseError> {
         self.expect_token(Token::Blud)?;
+
         let expr = self.parse_expression()?;
 
         Ok(Stmt::Return {
