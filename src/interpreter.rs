@@ -14,6 +14,13 @@ pub struct Interpreter {
     pub line: usize,
 }
 
+#[derive(Debug, PartialEq)]
+enum ControlFlow {
+    Continue,
+    Return(Expr),
+    None,
+}
+
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
@@ -31,18 +38,18 @@ impl Interpreter {
 
         Ok(())
     }
-    pub fn execute_statement(&mut self, stmt: Stmt) -> Result<Option<Expr>, error::ParseError> {
+    pub fn execute_statement(&mut self, stmt: Stmt) -> Result<ControlFlow, error::ParseError> {
         match stmt {
             Stmt::Function { name, body, line } => {
                 self.line = line;
                 self.functions.insert(name, body);
-                Ok(None)
+                Ok(ControlFlow::None)
             }
             Stmt::VariableAssign { name, value, line } => {
                 self.line = line;
                 let evaluated = self.evaluate_expression(value)?;
                 self.variables.insert(name, evaluated);
-                Ok(None)
+                Ok(ControlFlow::None)
             }
             Stmt::While {
                 condition,
@@ -50,17 +57,18 @@ impl Interpreter {
                 line,
             } => {
                 self.line = line;
-    
+
                 while self.evaluate_expression(condition.clone())? != Expr::Boolean(false) {
                     for stmt in &body {
-                        if let Some(return_value) = self.execute_statement(stmt.clone())? {
-                            // Handle return value from `blud`
-                            return Ok(Some(return_value));
+                        match self.execute_statement(stmt.clone())? {
+                            ControlFlow::Continue => break, // Skip to the next iteration
+                            ControlFlow::Return(value) => return Ok(ControlFlow::Return(value)),
+                            ControlFlow::None => {} // Continue executing the next statement
                         }
                     }
                 }
-    
-                Ok(None)
+
+                Ok(ControlFlow::None)
             }
             Stmt::If {
                 condition,
@@ -69,33 +77,35 @@ impl Interpreter {
                 line,
             } => {
                 self.line = line;
-    
+
                 if self.evaluate_expression(condition)? != Expr::Boolean(false) {
                     for stmt in then_branch {
-                        if let Some(return_value) = self.execute_statement(stmt)? {
-                            // Handle return value from `blud`
-                            return Ok(Some(return_value));
+                        match self.execute_statement(stmt)? {
+                            ControlFlow::Continue => return Ok(ControlFlow::Continue),
+                            ControlFlow::Return(value) => return Ok(ControlFlow::Return(value)),
+                            ControlFlow::None => {} // Continue executing the next statement
                         }
                     }
                 } else if let Some(else_branch) = else_branch {
                     for stmt in else_branch {
-                        if let Some(return_value) = self.execute_statement(stmt)? {
-                            // Handle return value from `blud`
-                            return Ok(Some(return_value));
+                        match self.execute_statement(stmt)? {
+                            ControlFlow::Continue => return Ok(ControlFlow::Continue),
+                            ControlFlow::Return(value) => return Ok(ControlFlow::Return(value)),
+                            ControlFlow::None => {} // Continue executing the next statement
                         }
                     }
                 }
-    
-                Ok(None)
+
+                Ok(ControlFlow::None)
             }
             Stmt::Expression { value: expr, line } => {
                 self.line = line;
                 self.evaluate_expression(expr)?;
-                Ok(None)
+                Ok(ControlFlow::None)
             }
             Stmt::Import { library, line } => {
                 self.line = line;
-    
+
                 match library.as_str() {
                     "nerd" => {
                         self.libs.insert(library, libs::nerd::load_nerd_library());
@@ -107,13 +117,17 @@ impl Interpreter {
                         });
                     }
                 }
-    
-                Ok(None)
+
+                Ok(ControlFlow::None)
             }
             Stmt::Return { value, line } => {
                 self.line = line;
                 let return_value = self.evaluate_expression(value)?;
-                Ok(Some(return_value))
+                Ok(ControlFlow::Return(return_value))
+            }
+            Stmt::Continue { line } => {
+                self.line = line;
+                Ok(ControlFlow::Continue)
             }
             _ => Err(error::ParseError::GeneralError {
                 line: self.line,
@@ -310,15 +324,28 @@ impl Interpreter {
         Ok(arg)
     }
 
-    pub fn execute_user_function(&mut self, name: String, _args: Vec<Expr>) -> Result<Expr, error::ParseError> {
+    pub fn execute_user_function(
+        &mut self,
+        name: String,
+        _args: Vec<Expr>,
+    ) -> Result<Expr, error::ParseError> {
         if let Some(body) = self.functions.get(&name) {
-            for stmt in body.clone() {
-                if let Stmt::Return { value, line } = stmt {
-                    self.line = line;
+            // for stmt in body.clone() {
+            //     if let Stmt::Return { value, line } = stmt {
+            //         self.line = line;
 
-                    return Ok(self.evaluate_expression(value)?);
-                } else {
-                    self.execute_statement(stmt)?;
+            //         return Ok(self.evaluate_expression(value)?);
+            //     } else {
+            //         self.execute_statement(stmt)?;
+            //     }
+            // }
+
+            for stmt in body.clone() {
+                let controlflow = self.execute_statement(stmt)?;
+
+                match controlflow {
+                    ControlFlow::Return(value) => return Ok(value),
+                    _ => {}
                 }
             }
 
@@ -426,9 +453,7 @@ impl Interpreter {
 
                 Ok(Expr::StringLiteral(input.trim().to_string()))
             }
-            _ => {
-                self.execute_user_function(name, args)
-            }
+            _ => self.execute_user_function(name, args),
         }
     }
 }

@@ -13,7 +13,7 @@ cookable mew()
         userDoor is cook aura(cook attemptrizz("1/2/3? > "))
 
         suspect(userDoor rizz badDoor) then 
-            cook yap("BOOO! A ghost. You lost with a score of: ", score)
+            cook yap("BOOO! A ghost. You lost with a score of:", score)
             
             blud 0
         ick
@@ -22,5 +22,3 @@ cookable mew()
         slay
     slay
 slay
-
--- blud, goat, ghost
