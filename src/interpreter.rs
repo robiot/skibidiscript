@@ -38,7 +38,8 @@ impl Interpreter {
 
         Ok(())
     }
-    pub fn execute_statement(&mut self, stmt: Stmt) -> Result<ControlFlow, error::ParseError> {
+    
+    fn execute_statement(&mut self, stmt: Stmt) -> Result<ControlFlow, error::ParseError> {
         match stmt {
             Stmt::Function { name, body, line } => {
                 self.line = line;
@@ -129,10 +130,10 @@ impl Interpreter {
                 self.line = line;
                 Ok(ControlFlow::Continue)
             }
-            _ => Err(error::ParseError::GeneralError {
-                line: self.line,
-                message: "Unsupported statement".to_string(),
-            }),
+            // _ => Err(error::ParseError::GeneralError {
+            //     line: self.line,
+            //     message: "Unsupported statement".to_string(),
+            // }),
         }
     }
 
