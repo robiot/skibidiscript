@@ -1,15 +1,5 @@
-gyatt wind
-
-window is wind.createWindow(140, 140)
-
--- own function
-cookable createWindow()
-    window.looksMaxxing()
-
-    window.setTitle("Skibidi Game")
-slay
-
+gyatt skui
 
 cookable mew()
-    cook createWindow()
+    window is cook skui.createWindow(500, 700)
 slay

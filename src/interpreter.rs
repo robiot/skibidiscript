@@ -111,6 +111,9 @@ impl Interpreter {
                     "nerd" => {
                         self.libs.insert(library, libs::nerd::load_nerd_library());
                     }
+                    "skui" => {
+                        self.libs.insert(library, libs::skui::load_skui_library());
+                    }
                     _ => {
                         return Err(error::ParseError::GeneralError {
                             line: self.line,

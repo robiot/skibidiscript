@@ -1,0 +1,104 @@
+gyatt skui
+
+-- Constants
+FPS is 60
+WINDOW_WIDTH is 500
+WINDOW_HEIGHT is 700
+PLAYER_SIZE is 50
+ZOMBIE_SIZE is 50
+BULLET_SIZE is 10
+WHITE is "#FFFFFF"
+BLUE is "#0000FF"
+GREEN is "#00FF00"
+RED is "#FF0000"
+
+-- Variables
+running is sigma
+playerSpr is cook skui.createSprite("player.png")
+
+playerX is WINDOW_WIDTH / 2
+playerY is WINDOW_HEIGHT / 2
+bullets is []
+zombies is []
+
+-- Create window
+skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT)
+skui.setWindowTitle("Skibidi Game")
+
+-- Draw a rectangle (used for player, zombies, and bullets)
+cookable drawRect(x, y, size, color) 
+    skui.setFillColor(color)
+    skui.drawRect(x, y, size, size)
+slay
+
+-- Game loop
+cookable gameLoop()
+    skui.setFPS(FPS)
+    skui.clear(WHITE)
+    
+    -- Handle input
+    skui.onKeyPressed('LEFT') do movePlayer(-10, 0) slay
+    skui.onKeyPressed('RIGHT') do movePlayer(10, 0) slay
+    skui.onKeyPressed('UP') do movePlayer(0, -10) slay
+    skui.onKeyPressed('DOWN') do movePlayer(0, 10) slay
+    skui.onKeyPressed('SPACE') do shootBullet() slay
+    
+    -- Update bullet positions
+    newBullets is []
+    for bullet in bullets do
+        bulletX, bulletY is bullet
+        bulletY is bulletY - 10
+        if bulletY >= 0 then
+            newBullets.push((bulletX, bulletY))
+        end
+    end
+    bullets is newBullets
+    
+    -- Update zombie positions
+    newZombies is []
+    for zombie in zombies do
+        zombieX, zombieY is zombie
+        zombieY is zombieY + 2
+        if zombieY <= WINDOW_HEIGHT then
+            newZombies.push((zombieX, zombieY))
+        end
+    end
+    zombies is newZombies
+    
+    -- Check collisions
+    for bullet in bullets do
+        bulletX, bulletY is bullet
+        for zombie in zombies do
+            zombieX, zombieY is zombie
+            if bulletX >= zombieX and bulletX <= zombieX + ZOMBIE_SIZE and
+               bulletY >= zombieY and bulletY <= zombieY + ZOMBIE_SIZE then
+                zombies.remove(zombie)
+                bullets.remove(bullet)
+            end
+        end
+    end
+    
+    -- Draw player
+    drawRect(playerX, playerY, PLAYER_SIZE, BLUE)
+    
+    -- Draw bullets
+    for bullet in bullets do
+        bulletX, bulletY is bullet
+        drawRect(bulletX, bulletY, BULLET_SIZE, RED)
+    end
+    
+    -- Draw zombies
+    for zombie in zombies do
+        zombieX, zombieY is zombie
+        drawRect(zombieX, zombieY, ZOMBIE_SIZE, GREEN)
+    end
+    
+    skui.refresh()
+slay
+
+-- Start game
+
+cookable mew()
+    spawnZombies()
+    gameLoop()
+slay

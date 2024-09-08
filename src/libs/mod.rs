@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::{error, interpreter::Interpreter, parser::Expr};
 
 pub mod nerd;
+pub mod skui;
 
 pub struct Library {
     pub functions: HashMap<String, BuiltinFunction>,
