@@ -73,6 +73,11 @@ fn run_ggez_window(width: f32, height: f32) -> GameResult<()> {
         .build()
         .expect("Failed to build ggez context");
 
+    // set title
+    // graphics::set_window_title(&ctx, "skui");
+
+    ctx.gfx.set_window_title("Skui test");
+
     let state = GameState;
     event::run(ctx, event_loop, state)
 }
