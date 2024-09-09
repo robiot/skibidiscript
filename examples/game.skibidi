@@ -25,6 +25,14 @@ cookable gameLoop()
         playerSpr.move(0, -1)
     slay
 
+    skibidi (skui.keyDown("LEFT")) do
+        playerSpr.rotate(-1)
+    slay
+
+    skibidi (skui.keyDown("RIGHT")) do
+        playerSpr.rotate(1)
+    slay
+
     -- Draw player
     playerSpr.draw()
 
