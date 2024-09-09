@@ -7,7 +7,7 @@ FPS is 60
 running is sigma
 
 -- Sprites
-playerSpr is cook skui.createSprite("player.png", 50, 50)
+playerSpr is cook skui.createSprite("player.png", 50, 50, 0, 0)
 
 -- Create window
 skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -24,7 +24,7 @@ cookable gameLoop()
     skibidi (skui.keyDown("UP")) do
         playerSpr.move(0, -1)
     slay
-    
+
     -- Draw player
     playerSpr.draw()
 
