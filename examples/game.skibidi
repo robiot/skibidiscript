@@ -15,10 +15,10 @@ skui.setWindowTitle("Skibidi Game")
 
 -- Game loop
 cookable gameLoop()
-    skui.setFPS(FPS)
+    skui.clockTick(FPS)
 
     -- bg color
-    skui.clear(skui.colors.COEMS)
+    skui.fill(skui.colors.DARK)
 
     -- Handle input
     skibidi (skui.keyDown("UP")) do
