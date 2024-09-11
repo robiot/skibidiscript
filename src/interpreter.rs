@@ -308,6 +308,41 @@ impl Interpreter {
         }
     }
 
+    // let args: Vec<Expr> = vec![/* some expressions */];
+
+    // // Define validators corresponding to each argument
+    // let validators = vec![
+    //     |expr| itp.expr_to_number(expr),  // First validator: expects a number
+    //     |expr| itp.expr_to_number(expr),  // Second validator: expects a number
+    //     |expr| itp.expr_to_string(expr),  // Third validator: expects a string
+    // ];
+
+    // let parsed_args = itp.consume_arguments(&args, &validators)?;
+
+    // // Pattern match and destructure the result into a tuple
+    // let (width, height, title) = match parsed_args.as_slice() {
+    //     [width, height, title] => (*width as u32, *height as u32, title.clone()),
+    // };
+    // pub fn consume_arguments<T>(
+    //     args: &[Expr], 
+    //     validators: &[impl Fn(&Expr) -> Result<T, error::ParseError>]
+    // ) -> Result<Vec<T>, error::ParseError> {
+    //     if args.len() != validators.len() {
+    //         return Err(error::ParseError::ArgumentMismatch {
+    //             found: args.len(),
+    //             expected: validators.len(),
+    //             line: self.line,
+    //         });
+    //     }
+    
+    //     // Use iterator to apply validators sequentially
+    //     args.iter()
+    //         .zip(validators.iter())
+    //         .map(|(arg, validator)| validator(arg))
+    //         .collect::<Result<Vec<T>, _>>()  // Collect into a `Result<Vec<T>, ParseError>`
+    // }
+
+    // consume_argument(&args, 1)
     // Helper function to consume arguments
     pub fn consume_argument(
         &self,

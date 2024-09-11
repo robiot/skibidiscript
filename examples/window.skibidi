@@ -1,5 +1,13 @@
 gyatt skui
 
+WIDTH is 800
+HEIGHT is 600
+
 cookable mew()
-    window is cook skui.createWindow(500, 700)
+    cook yap("Running skibidigame")
+    window is cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
+
+    skibidi (sigma) do
+        cook yap("running")
+    slay
 slay

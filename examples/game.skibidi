@@ -9,9 +9,6 @@ running is sigma
 -- Sprites
 playerSpr is cook skui.createSprite("player.png", 50, 50, 0, 0)
 
--- Create window
-skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT)
-skui.setWindowTitle("Skibidi Game")
 
 -- Game loop
 cookable gameLoop()
@@ -43,5 +40,10 @@ slay
 
 cookable mew()
     spawnZombies()
+
+    
+    -- Create window
+    skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Skibidi Game", gameLoop)
+    
     gameLoop()
 slay

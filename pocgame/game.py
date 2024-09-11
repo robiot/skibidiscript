@@ -217,7 +217,6 @@ while running:
 
         running = False
 
-
     clock.tick(FPS)
 
     # Draw everything
