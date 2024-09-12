@@ -12,6 +12,8 @@ use winit::platform::pump_events::EventLoopExtPumpEvents;
 use winit::platform::pump_events::PumpStatus;
 use winit::window::{Window, WindowId};
 
+
+// https://www.reddit.com/r/rust/comments/1dnaase/rust_and_winit_0303/
 pub fn load_skui_library() -> Library {
     let mut functions: LibFunctions = HashMap::new();
     functions.insert("createWindow".to_string(), create_window);

@@ -1,3 +1,5 @@
 cookable mew()
     cook yap("hello world")
+    output is cook attemptrizz("你叫什么名字？ ")
+    cook yap("你好，" + output)
 slay

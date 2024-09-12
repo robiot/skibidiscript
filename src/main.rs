@@ -2,8 +2,8 @@
 mod error;
 mod interpreter;
 mod lexer;
-mod parser;
 mod libs;
+mod parser;
 
 use interpreter::Interpreter;
 use lexer::Lexer;
@@ -12,6 +12,9 @@ use std::env;
 use std::fs;
 
 fn main() {
+    libs::libsv2::start();
+    return;
+
     let args: Vec<String> = env::args().collect();
 
     // First check that we have a script

@@ -2,14 +2,18 @@ use std::collections::HashMap;
 
 use crate::{error, interpreter::Interpreter, parser::Expr};
 
-use super::{LibFunctions, Library};
+use super::{LibFunctions, LibState, Library};
+
+pub struct NerdState {
+    pub state_number: i32,
+}
 
 pub fn load_nerd_library() -> Library {
     let mut functions: LibFunctions = HashMap::new();
     functions.insert("randInt".to_string(), rand_int_builtin);
     // Add more functions as needed
 
-    Library { functions }
+    Library { functions, state: LibState::NerdState(NerdState { state_number: 0 }) }
 }
 
 fn rand_int_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, error::ParseError> {
