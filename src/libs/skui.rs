@@ -1,4 +1,4 @@
-use super::{LibFunctions, Library};
+use super::{LibFunctions, LibState, Library};
 use crate::{error, interpreter::Interpreter, parser::Expr};
 
 use std::collections::HashMap;
@@ -12,23 +12,17 @@ use winit::platform::pump_events::EventLoopExtPumpEvents;
 use winit::platform::pump_events::PumpStatus;
 use winit::window::{Window, WindowId};
 
+pub const LIBRARY_NAME: &str = "skui";
 
-// https://www.reddit.com/r/rust/comments/1dnaase/rust_and_winit_0303/
-pub fn load_skui_library() -> Library {
-    let mut functions: LibFunctions = HashMap::new();
-    functions.insert("createWindow".to_string(), create_window);
-
-    Library { functions }
-}
-
+#[derive(Debug)]
 struct WindowInfo {
     width: u32,
     height: u32,
     title: String,
 }
 
-#[derive(Default)]
-struct Skui {
+#[derive(Default, Debug)]
+pub struct SkuiState {
     window: Option<Window>,
     window_info: Option<WindowInfo>,
 
@@ -36,9 +30,88 @@ struct Skui {
     active_event: Option<WindowEvent>,
 }
 
-impl Skui {
+
+// https://www.reddit.com/r/rust/comments/1dnaase/rust_and_winit_0303/
+pub fn load_skui_library() -> Library {
+    let mut functions: LibFunctions = HashMap::new();
+    functions.insert("createWindow".to_string(), create_window);
+
+    Library {
+        functions,
+        state: LibState::SkuiState(SkuiState {
+            window: None,
+            window_info: None,
+            active_event: None,
+        }),
+    }
+}
+
+// All functions
+fn create_window(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, error::ParseError> {
+    let width = itp.expr_to_number(itp.consume_argument(&args, 3, 0)?)? as u32;
+    let height = itp.expr_to_number(itp.consume_argument(&args, 3, 1)?)? as u32;
+    let title = itp.expr_to_string(itp.consume_argument(&args, 3, 2)?)?;
+
+    // Ensure dimensions are valid
+    if width <= 0 || height <= 0 {
+        return Err(error::ParseError::GeneralError {
+            line: itp.line,
+            message: "Window dimensions must be greater than zero.".to_string(),
+        });
+    }
+
+    println!(
+        "Creating window with width: {} and height: {}",
+        width, height
+    );
+
+    let mut event_loop = EventLoop::new().unwrap();
+
+    // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
+    // dispatched any events. This is ideal for games and similar applications.
+    event_loop.set_control_flow(ControlFlow::Poll);
+
+    // ControlFlow::Wait pauses the event loop if no events are available to process.
+    // This is ideal for non-game applications that only update in response to user
+    // input, and uses significantly less power/CPU time than ControlFlow::Poll.
+    event_loop.set_control_flow(ControlFlow::Wait);
+
+    let mut app = SkuiState::new(WindowInfo {
+        width,
+        height,
+        title,
+    });
+    // event_loop.run_app(&mut app).unwrap();
+
+    // we got a golden start
+    let status = event_loop.pump_app_events(Some(Duration::ZERO), &mut app);
+
+    // loop {
+    //     let timeout = Some(Duration::ZERO);
+    //     let status = event_loop.pump_app_events(timeout, &mut app);
+
+    //     if let PumpStatus::Exit(exit_code) = status {
+    //         break;
+    //     }
+
+    //     // Sleep for 1/60 second to simulate application work
+    //     //
+    //     // Since `pump_events` doesn't block it will be important to
+    //     // throttle the loop in the app somehow.
+    //     println!("Update()");
+    //     sleep(Duration::from_millis(16));
+    // }
+
+    // createa a window using winit
+
+    Ok(Expr::Boolean(true))
+}
+
+
+// The state of the skui/ winit wrapper
+impl SkuiState {
     fn new(window_info: WindowInfo) -> Self {
-        Skui {
+        SkuiState {
             window: None,
             window_info: Some(window_info),
             active_event: None,
@@ -79,7 +152,7 @@ impl Skui {
     }
 }
 
-impl ApplicationHandler for Skui {
+impl ApplicationHandler for SkuiState {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let window_info = self.window_info.as_ref().unwrap();
 
@@ -121,64 +194,4 @@ impl ApplicationHandler for Skui {
             _ => (),
         }
     }
-}
-
-fn create_window(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, error::ParseError> {
-    let width = itp.expr_to_number(itp.consume_argument(&args, 3, 0)?)? as u32;
-    let height = itp.expr_to_number(itp.consume_argument(&args, 3, 1)?)? as u32;
-    let title = itp.expr_to_string(itp.consume_argument(&args, 3, 2)?)?;
-
-    // Ensure dimensions are valid
-    if width <= 0 || height <= 0 {
-        return Err(error::ParseError::GeneralError {
-            line: itp.line,
-            message: "Window dimensions must be greater than zero.".to_string(),
-        });
-    }
-
-    println!(
-        "Creating window with width: {} and height: {}",
-        width, height
-    );
-
-    let mut event_loop = EventLoop::new().unwrap();
-
-    // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
-    // dispatched any events. This is ideal for games and similar applications.
-    event_loop.set_control_flow(ControlFlow::Poll);
-
-    // ControlFlow::Wait pauses the event loop if no events are available to process.
-    // This is ideal for non-game applications that only update in response to user
-    // input, and uses significantly less power/CPU time than ControlFlow::Poll.
-    event_loop.set_control_flow(ControlFlow::Wait);
-
-    let mut app = Skui::new(WindowInfo {
-        width,
-        height,
-        title,
-    });
-    // event_loop.run_app(&mut app).unwrap();
-
-    // we got a golden start
-    let status = event_loop.pump_app_events(Some(Duration::ZERO), &mut app);
-
-    // loop {
-    //     let timeout = Some(Duration::ZERO);
-    //     let status = event_loop.pump_app_events(timeout, &mut app);
-
-    //     if let PumpStatus::Exit(exit_code) = status {
-    //         break;
-    //     }
-
-    //     // Sleep for 1/60 second to simulate application work
-    //     //
-    //     // Since `pump_events` doesn't block it will be important to
-    //     // throttle the loop in the app somehow.
-    //     println!("Update()");
-    //     sleep(Duration::from_millis(16));
-    // }
-
-    // createa a window using winit
-
-    Ok(Expr::Boolean(true))
 }
