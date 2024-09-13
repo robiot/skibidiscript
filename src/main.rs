@@ -12,9 +12,6 @@ use std::env;
 use std::fs;
 
 fn main() {
-    libs::libsv2::start();
-    return;
-
     let args: Vec<String> = env::args().collect();
 
     // First check that we have a script

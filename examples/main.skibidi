@@ -1,5 +1,12 @@
+gyatt nerd
+
 cookable mew()
-    cook yap("hello world")
-    output is cook attemptrizz("你叫什么名字？ ")
-    cook yap("你好，" + output)
+    cook yap("num2-1", nerd.getState())
+
+    num is nerd.randInt(1, 10)
+    cook yap("你的number是", num)
+
+    numtwo is nerd.getState()
+    cook yap("num2-2", numtwo)
+    -- cook yap("你好，" + output)
 slay
