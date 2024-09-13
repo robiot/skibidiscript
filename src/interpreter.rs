@@ -2,7 +2,7 @@
 use crate::{
     error,
     lexer::Token,
-    libs::{self, Library},
+    libs::{self, nerd::NerdState, LibState, Library},
     parser::{Expr, Stmt},
 };
 use {std::collections::HashMap, std::io::Write};
@@ -38,7 +38,7 @@ impl Interpreter {
 
         Ok(())
     }
-    
+
     fn execute_statement(&mut self, stmt: Stmt) -> Result<ControlFlow, error::ParseError> {
         match stmt {
             Stmt::Function { name, body, line } => {
@@ -108,12 +108,12 @@ impl Interpreter {
                 self.line = line;
 
                 match library.as_str() {
-                    // "nerd" => {
-                    //     self.libs.insert(library, libs::nerd::load_nerd_library());
-                    // }
-                    // "skui" => {
-                    //     self.libs.insert(library, libs::skui::load_skui_library());
-                    // }
+                    libs::nerd::LIBRARY_NAME => {
+                        self.libs.insert(library, libs::nerd::load_nerd_library());
+                    }
+                    libs::skui::LIBRARY_NAME => {
+                        self.libs.insert(library, libs::skui::load_skui_library());
+                    }
                     _ => {
                         return Err(error::ParseError::GeneralError {
                             line: self.line,
@@ -132,11 +132,10 @@ impl Interpreter {
             Stmt::Continue { line } => {
                 self.line = line;
                 Ok(ControlFlow::Continue)
-            }
-            // _ => Err(error::ParseError::GeneralError {
-            //     line: self.line,
-            //     message: "Unsupported statement".to_string(),
-            // }),
+            } // _ => Err(error::ParseError::GeneralError {
+              //     line: self.line,
+              //     message: "Unsupported statement".to_string(),
+              // }),
         }
     }
 
@@ -324,7 +323,7 @@ impl Interpreter {
     //     [width, height, title] => (*width as u32, *height as u32, title.clone()),
     // };
     // pub fn consume_arguments<T>(
-    //     args: &[Expr], 
+    //     args: &[Expr],
     //     validators: &[impl Fn(&Expr) -> Result<T, error::ParseError>]
     // ) -> Result<Vec<T>, error::ParseError> {
     //     if args.len() != validators.len() {
@@ -334,7 +333,7 @@ impl Interpreter {
     //             line: self.line,
     //         });
     //     }
-    
+
     //     // Use iterator to apply validators sequentially
     //     args.iter()
     //         .zip(validators.iter())
@@ -369,16 +368,6 @@ impl Interpreter {
         _args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
         if let Some(body) = self.functions.get(&name) {
-            // for stmt in body.clone() {
-            //     if let Stmt::Return { value, line } = stmt {
-            //         self.line = line;
-
-            //         return Ok(self.evaluate_expression(value)?);
-            //     } else {
-            //         self.execute_statement(stmt)?;
-            //     }
-            // }
-
             for stmt in body.clone() {
                 let controlflow = self.execute_statement(stmt)?;
 
@@ -416,26 +405,28 @@ impl Interpreter {
                 });
             };
 
-            // check if object exisrt in the libs
-            let lib = if let Some(lib) = self.libs.get(&object) {
-                Ok(lib)
-            } else {
-                Err(error::ParseError::GeneralError {
-                    line: self.line,
-                    message: format!("Unknown library: {}", object),
-                })
-            }?;
+            let lib_name = object.clone();
+            let lib =
+                self.libs
+                    .get_mut(&lib_name)
+                    .ok_or_else(|| error::ParseError::GeneralError {
+                        line: self.line,
+                        message: format!("Unknown library: {}", lib_name),
+                    })?;
 
-            let func = if let Some(function) = lib.functions.get(&name) {
-                Ok(function)
-            } else {
-                return Err(error::ParseError::GeneralError {
+            let func = lib
+                .functions
+                .get(&name)
+                .ok_or_else(|| error::ParseError::GeneralError {
                     line: self.line,
-                    message: format!("Unknown function: {} on object {}", name, object),
-                });
-            }?;
+                    message: format!("Unknown function: {} on object {}", name, lib_name),
+                })?;
 
-            return func(self, args.clone());
+            return func(
+                self,
+                args.clone(),
+                // &mut lib.state,
+            );
         }
 
         // normal function call
