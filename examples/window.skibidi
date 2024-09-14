@@ -5,9 +5,11 @@ HEIGHT is 600
 
 cookable mew()
     cook yap("Running skibidigame")
-    window is cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
+    cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
+
+    -- cook yap("asd", window)
 
     skibidi (sigma) do
-        cook yap("running")
+        cook skui.pumpEvents()
     slay
 slay

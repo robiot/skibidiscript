@@ -7,7 +7,6 @@ pub mod skui;
 
 #[derive(Debug)]
 pub enum LibState {
-    NerdState(nerd::NerdState),
     SkuiState(skui::SkuiState),
     None,
 }
