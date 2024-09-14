@@ -4,7 +4,7 @@ use crate::{error, interpreter::Interpreter, parser::Expr};
 use std::time::Duration;
 
 use winit::event_loop::{ControlFlow, EventLoop};
-use winit::platform::pump_events::EventLoopExtPumpEvents;
+use winit::platform::pump_events::{EventLoopExtPumpEvents, PumpStatus};
 
 // All functions
 pub fn create_window_builtin(
@@ -23,12 +23,7 @@ pub fn create_window_builtin(
         });
     }
 
-    println!(
-        "Creating window with width: {} and height: {}",
-        width, height
-    );
-
-    let mut event_loop = EventLoop::new().unwrap();
+    let event_loop = EventLoop::new().unwrap();
 
     // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
     // dispatched any events. This is ideal for games and similar applications.
@@ -39,42 +34,24 @@ pub fn create_window_builtin(
     // input, and uses significantly less power/CPU time than ControlFlow::Poll.
     event_loop.set_control_flow(ControlFlow::Wait);
 
-    let mut app = SkuiApp::new(WindowInfo {
+    let app = SkuiApp::new(WindowInfo {
         width,
         height,
         title,
     });
 
-    let status = event_loop.pump_app_events(Some(Duration::ZERO), &mut app);
-
     let state = super::load_skui_state(itp)?;
 
     state.app = Some(app);
     state.event_loop = Some(event_loop);
-
-    status;
-    // event_loop.run_app(&mut app).unwrap();
-
-    // loop {
-    //     let timeout = Some(Duration::ZERO);
-    //     let status = event_loop.pump_app_events(timeout, &mut app);
-
-    //     if let PumpStatus::Exit(exit_code) = status {
-    //         break;
-    //     }
-
-    //     // Sleep for 1/60 second to simulate application work
-    //     //
-    //     // Since `pump_events` doesn't block it will be important to
-    //     // throttle the loop in the app somehow.
-    //     println!("Update()");
-    //     sleep(Duration::from_millis(16));
-    // }
-
+  
     Ok(Expr::Boolean(true))
 }
 
-pub fn pump_events_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, error::ParseError> {
+pub fn pump_events_builtin(
+    itp: &mut Interpreter,
+    _args: Vec<Expr>,
+) -> Result<Expr, error::ParseError> {
     let state = super::load_skui_state(itp)?;
 
     let event_loop = if let Some(event_loop) = &mut state.event_loop {
@@ -91,14 +68,9 @@ pub fn pump_events_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Exp
 
     let status = event_loop.pump_app_events(Some(Duration::ZERO), app);
 
-    // if let Some(app) = &mut state.app {
-    //     if let Some(event_loop) = &mut app.event_loop {
-    //         // let app2 = app.clone();
-
-    //         let status = event_loop.pump_app_events(Some(Duration::ZERO), &mut app);
-    //         // Handle status if needed
-    //     }
-    // }
-
-    Ok(Expr::Boolean(true))
+    if let PumpStatus::Exit(_) = status {
+        Ok(Expr::StringLiteral("exit".to_string()))
+    } else {
+        Ok(Expr::StringLiteral("ok".to_string()))
+    }
 }

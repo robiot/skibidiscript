@@ -5,17 +5,17 @@ HEIGHT is 600
 FPS is 60
 
 cookable mew()
-    cook yap("Running skibidigame")
     cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
 
     cook skui.setFramesPerSkibidi(FPS)
 
-    -- cook yap("asd", window)
-
     skibidi (sigma) do
-        cook skui.pumpEvents()
+        status is cook skui.pumpEvents()
 
-        cook yap("This is running on", FPS, "FPS")
+        suspect(status rizz "exit") then 
+            blud 0
+        slay
+
         cook skui.clockEdge()
     slay
 slay
