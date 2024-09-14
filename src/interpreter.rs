@@ -2,7 +2,7 @@
 use crate::{
     error,
     lexer::Token,
-    libs::{self, nerd::NerdState, LibState, Library},
+    libs::{self, Library},
     parser::{Expr, Stmt},
 };
 use {std::collections::HashMap, std::io::Write};
