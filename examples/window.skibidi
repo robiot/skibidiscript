@@ -2,14 +2,20 @@ gyatt skui
 
 WIDTH is 800
 HEIGHT is 600
+FPS is 60
 
 cookable mew()
     cook yap("Running skibidigame")
     cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
 
+    cook skui.setFramesPerSkibidi(FPS)
+
     -- cook yap("asd", window)
 
     skibidi (sigma) do
         cook skui.pumpEvents()
+
+        cook yap("This is running on", FPS, "FPS")
+        cook skui.clockEdge()
     slay
 slay

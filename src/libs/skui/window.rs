@@ -52,6 +52,7 @@ pub fn create_window_builtin(
     state.app = Some(app);
     state.event_loop = Some(event_loop);
 
+    status;
     // event_loop.run_app(&mut app).unwrap();
 
     // loop {

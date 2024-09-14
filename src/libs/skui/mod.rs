@@ -1,8 +1,7 @@
 use super::{get_lib_state, LibFunctions, LibState, Library};
-use crate::{error, interpreter::Interpreter, parser::Expr};
+use crate::{error, interpreter::Interpreter};
 
 use std::collections::HashMap;
-use std::time::Duration;
 
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
@@ -34,7 +33,7 @@ pub struct SkuiApp {
 pub struct SkuiState {
     app: Option<SkuiApp>,
     event_loop: Option<EventLoop<()>>,
-    clock: Option<Duration>,
+    clock: Option<clock::Clock>,
 }
 
 // https://www.reddit.com/r/rust/comments/1dnaase/rust_and_winit_0303/
@@ -42,7 +41,10 @@ pub fn load_skui_library() -> Library {
     let mut functions: LibFunctions = HashMap::new();
     functions.insert("createWindow".to_string(), window::create_window_builtin);
     functions.insert("pumpEvents".to_string(), window::pump_events_builtin);
-    functions.insert("clockTick".to_string(), clock::clock_tick_builtin);
+
+    // Clock tick
+    functions.insert("clockEdge".to_string(), clock::clock_tick_builtin);
+    functions.insert("setFramesPerSkibidi".to_string(), clock::clock_set_fps_builtin);
 
     Library {
         functions,
@@ -82,37 +84,37 @@ impl SkuiApp {
         }
     }
 
-    fn get_event(&mut self) -> Expr {
-        let event = self.active_event.take().unwrap();
+    // fn get_event(&mut self) -> Expr {
+    //     let event = self.active_event.take().unwrap();
 
-        let event_code = match event {
-            WindowEvent::CloseRequested => {
-                println!("The close button was pressed; stopping");
-                // event_loop.exit();
+    //     let event_code = match event {
+    //         WindowEvent::CloseRequested => {
+    //             println!("The close button was pressed; stopping");
+    //             // event_loop.exit();
 
-                "close_requested"
-            }
-            // WindowEvent::RedrawRequested => {
-            //     // Redraw the application.
-            //     //
-            //     // It's preferable for applications that do not render continuously to render in
-            //     // this event rather than in AboutToWait, since rendering in here allows
-            //     // the program to gracefully handle redraws requested by the OS.
+    //             "close_requested"
+    //         }
+    //         // WindowEvent::RedrawRequested => {
+    //         //     // Redraw the application.
+    //         //     //
+    //         //     // It's preferable for applications that do not render continuously to render in
+    //         //     // this event rather than in AboutToWait, since rendering in here allows
+    //         //     // the program to gracefully handle redraws requested by the OS.
 
-            //     // Draw.
+    //         //     // Draw.
 
-            //     // Queue a RedrawRequested event.
-            //     //
-            //     // You only need to call this if you've determined that you need to redraw in
-            //     // applications which do not always need to. Applications that redraw continuously
-            //     // can render here instead.
-            //     // self.window.as_ref().unwrap().request_redraw();
-            // }
-            _ => "",
-        };
+    //         //     // Queue a RedrawRequested event.
+    //         //     //
+    //         //     // You only need to call this if you've determined that you need to redraw in
+    //         //     // applications which do not always need to. Applications that redraw continuously
+    //         //     // can render here instead.
+    //         //     // self.window.as_ref().unwrap().request_redraw();
+    //         // }
+    //         _ => "",
+    //     };
 
-        Expr::StringLiteral(event_code.to_string())
-    }
+    //     Expr::StringLiteral(event_code.to_string())
+    // }
 }
 
 impl ApplicationHandler for SkuiApp {
