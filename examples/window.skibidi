@@ -13,6 +13,7 @@ cookable mew()
         status is cook skui.pumpEvents()
 
         suspect(status rizz "exit") then 
+            cook yap("exiting")
             blud 0
         slay
 
