@@ -26,6 +26,7 @@ fn main() -> Result<(), Error> {
     // env_logger::init();
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
+
     let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
 
     let window = WindowBuilder::new()
@@ -40,7 +41,6 @@ fn main() -> Result<(), Error> {
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
-
     let mut world = World::new();
 
     event_loop.run(move |event, _, control_flow| {

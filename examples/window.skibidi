@@ -2,7 +2,7 @@ gyatt skui
 
 WIDTH is 800
 HEIGHT is 600
-FPS is 60
+FPS is 2
 
 BG_COLOR is "#000000"
 FG_COLOR is "#FFFFFF"
@@ -17,7 +17,7 @@ cookable mew()
         status is cook skui.pumpEvents()
 
         cook skui.goonScreen(BG_COLOR)
-
+        cook skui.goonScreen(FG_COLOR)
 
         -- cook skui.placeText("Text working", BG_COLOR)
 
@@ -30,6 +30,6 @@ cookable mew()
             -- blud 0
         slay
 
-        -- cook skui.clockEdge()
+        cook skui.clockEdge()
     slay
 slay

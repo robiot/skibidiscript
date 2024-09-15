@@ -25,16 +25,13 @@ pub fn clock_set_fps_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<E
 
     let state = super::load_skui_state(itp)?;
 
-    let clock = if let Some(clock) = &mut state.clock {
-        clock
-    } else {
-        return Ok(Expr::Boolean(true));
+    let clock = Clock {
+        last_frame_time: Instant::now(),
+        target_frame_duration: Duration::from_secs(1) / fps,
     };
 
+    state.clock = Some(clock);
     // Calculate the target frame duration based on the provided FPS
-    let target_frame_duration = Duration::from_secs(1) / fps;
-
-    clock.target_frame_duration = target_frame_duration;
 
     Ok(Expr::Boolean(true))
 }
@@ -45,6 +42,7 @@ pub fn clock_tick_builtin(itp: &mut Interpreter, _args: Vec<Expr>) -> Result<Exp
     let clock = if let Some(clock) = &mut state.clock {
         clock
     } else {
+        println!("Clock not initialized");
         return Ok(Expr::Boolean(true));
     };
 
