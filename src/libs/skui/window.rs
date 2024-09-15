@@ -44,7 +44,7 @@ pub fn create_window_builtin(
 
     state.app = Some(app);
     state.event_loop = Some(event_loop);
-  
+
     Ok(Expr::Boolean(true))
 }
 
@@ -79,45 +79,54 @@ pub fn fill_screen_builtin(
     itp: &mut Interpreter,
     args: Vec<Expr>,
 ) -> Result<Expr, error::ParseError> {
-    let state = super::load_skui_state(itp)?;
-
     let colorhex = itp.expr_to_string(itp.consume_argument(&args, 1, 0)?)?;
 
-    let event_loop = if let Some(event_loop) = &mut state.event_loop {
-        event_loop
+    let line = itp.line;
+
+    let state = super::load_skui_state(itp)?;
+
+    
+    let app = if let Some(app) = &mut state.app {
+        app
     } else {
-        return Ok(Expr::Boolean(true));
+        return Ok(Expr::Boolean(false));
     };
-    let rgba = super::utils::hex_to_rgba(&colorhex).map_err(|e| error::ParseError::GeneralError {
-        line: itp.line,
+
+    let pixels = if let Some(pixels) = &mut app.pixels {
+        pixels
+    } else {
+        return Ok(Expr::Boolean(false));
+    };
+
+    // let window = if let Some(window) = &mut app.window {
+    //     window
+    // } else {
+    //     return Ok(Expr::Boolean(false));
+    // };
+
+
+    let rgba =
+        super::utils::hex_to_rgba(&colorhex).map_err(|e| error::ParseError::GeneralError {
+            line,
+            message: e.to_string(),
+        })?;
+
+    println!("fill_screen_builtin: {:?}", rgba);
+    // Fill the screen with the specified color
+    let frame = pixels.frame_mut();
+    for pixel in frame.chunks_exact_mut(4) {
+        pixel.copy_from_slice(&rgba);
+    }
+
+
+    pixels.render().map_err(|e| error::ParseError::GeneralError {
+        line,
         message: e.to_string(),
     })?;
 
-    if let Some(app) = &mut state.app {
-        if let Some(pixels) = &mut app.pixels {
-            // Fill the screen with the specified color
-            let frame = pixels.get_frame();
-            for pixel in frame.chunks_exact_mut(4) {
-                pixel.copy_from_slice(&rgba);
-            }
-
-            // Redraw the window
-            if let Some(window) = &app.window {
-                window.request_redraw();
-            }
-
-            Ok(())
-        } else {
-            Err(error::ParseError::GeneralError {
-                line: itp.line,
-                message: "Pixels not initialized".to_string(),
-            })
-        }
-    } else {
-        Err(error::ParseError::GeneralError {
-            line: itp.line,
-            message: "App not initialized".to_string(),
-        })
+    // Redraw the window
+    if let Some(window) = &app.window {
+        window.request_redraw();
     }
 
     Ok(Expr::StringLiteral("ok".to_string()))
