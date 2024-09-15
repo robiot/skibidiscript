@@ -4,6 +4,10 @@ WIDTH is 800
 HEIGHT is 600
 FPS is 60
 
+BG_COLOR is "#000000"
+FG_COLOR is "#FFFFFF"
+BULLET_COLOR is "#000000"
+
 cookable mew()
     cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
 
@@ -12,11 +16,19 @@ cookable mew()
     skibidi (sigma) do
         status is cook skui.pumpEvents()
 
+        -- cook skui.goonScreen(FG_COLOR)
+
+        -- cook skui.placeText("Text working", BG_COLOR)
+
         suspect(status rizz "exit") then 
-            cook yap("exiting")
             blud 0
         slay
 
-        cook skui.clockEdge()
+        suspect(status rizz "keydown_space") then 
+            -- cook yap("exiting")
+            -- blud 0
+        slay
+
+        -- cook skui.clockEdge()
     slay
 slay

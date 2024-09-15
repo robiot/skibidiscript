@@ -3,6 +3,7 @@ use crate::{error, interpreter::Interpreter};
 
 use std::collections::HashMap;
 
+use pixels::{Pixels, SurfaceTexture};
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, EventLoop};
@@ -10,6 +11,7 @@ use winit::window::{Window, WindowId};
 
 pub mod clock;
 pub mod window;
+pub mod utils;
 
 pub const LIBRARY_NAME: &str = "skui";
 
@@ -25,8 +27,8 @@ pub struct SkuiApp {
     window: Option<Window>,
     window_info: Option<WindowInfo>,
 
-    // Stuff
     active_event: Option<WindowEvent>,
+    pixels: Option<Pixels>, // Add a field to hold the pixel buffer
 }
 
 #[derive(Default, Debug)]
@@ -43,8 +45,14 @@ pub fn load_skui_library() -> Library {
     functions.insert("pumpEvents".to_string(), window::pump_events_builtin);
 
     // Clock tick
+    functions.insert(
+        "setFramesPerSkibidi".to_string(),
+        clock::clock_set_fps_builtin,
+    );
     functions.insert("clockEdge".to_string(), clock::clock_tick_builtin);
-    functions.insert("setFramesPerSkibidi".to_string(), clock::clock_set_fps_builtin);
+
+    // Draw
+    functions.insert("goonScreen".to_string(), window::fill_screen_builtin);
 
     Library {
         functions,
@@ -81,6 +89,7 @@ impl SkuiApp {
             window: None,
             window_info: Some(window_info),
             active_event: None,
+            pixels: None,
         }
     }
 
@@ -126,15 +135,20 @@ impl ApplicationHandler for SkuiApp {
                 window_info.width,
                 window_info.height,
             ))
+            .with_resizable(false)
             .with_title(window_info.title.clone()); // Set the window title
 
-        self.window = Some(event_loop.create_window(window_attributes).unwrap());
-    }
+        let window = event_loop.create_window(window_attributes).unwrap();
+        let window_size = window.inner_size();
 
+        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
+        self.pixels =
+            Some(Pixels::new(window_size.width, window_size.height, surface_texture).unwrap());
+
+        self.window = Some(window);
+    }
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         self.active_event = Some(event.clone());
-
-        println!("frame");
         match event {
             WindowEvent::CloseRequested => {
                 println!("The close button was pressed; stopping");
