@@ -1,0 +1,18 @@
+[package]
+name = "minimal-winit"
+version = "0.1.0"
+authors = ["Jay Oster <jay@kodewerx.org>"]
+edition = "2021"
+publish = false
+
+[features]
+optimize = ["log/release_max_level_warn"]
+default = ["optimize"]
+
+[dependencies]
+env_logger = "0.10"
+error-iter = "0.4"
+log = "0.4"
+pixels = "0.13.0"
+winit = "0.28"
+winit_input_helper = "0.14"
