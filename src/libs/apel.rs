@@ -76,5 +76,4 @@ fn spawn_apel_builtin(itp: &mut Interpreter, args: Vec<Expr>) -> Result<Expr, er
         // Sleep to control the frame rate
         sleep(Duration::from_millis(100));
     }
-    Ok(Expr::Number(0))
 }
