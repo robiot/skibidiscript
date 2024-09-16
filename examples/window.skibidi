@@ -2,7 +2,7 @@ gyatt skui
 
 WIDTH is 800
 HEIGHT is 600
-FPS is 2
+FPS is 60
 
 BG_COLOR is "#000000"
 FG_COLOR is "#FFFFFF"
