@@ -16,8 +16,8 @@ cookable mew()
     skibidi (sigma) do
         status is cook skui.pumpEvents()
 
-        cook skui.goonScreen(BG_COLOR)
-        cook skui.goonScreen(FG_COLOR)
+        cook skui.goonScreen("#FF0000")
+        cook skui.goonScreen("#00FF00")
 
         -- cook skui.placeText("Text working", BG_COLOR)
 

@@ -1,12 +1,14 @@
 gyatt nerd
 
 cookable mew()
-    cook yap("num2-1", nerd.getState())
+    skibidi (sigma) do
+        output is cook attemptrizz("Vad är ditt namn?")
 
-    num is nerd.randInt(1, 10)
-    cook yap("你的number是", num)
-
-    numtwo is nerd.getState()
-    cook yap("num2-2", numtwo)
-    -- cook yap("你好，" + output)
+        suspect(output rizz "jimmy") then
+            cook yap("Hej Jimmy! Du är cool")
+            blud 0
+        ick
+            cook yap("Du är inte Jimmy!")
+        slay
+    slay
 slay
