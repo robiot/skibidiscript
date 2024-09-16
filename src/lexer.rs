@@ -53,7 +53,7 @@ impl Lexer {
         keywords.insert("skibidi".into(), Token::Skibidi);
         keywords.insert("sigma".into(), Token::Sigma);
         keywords.insert("ohio".into(), Token::Ohio);
-        keywords.insert("suspect".into(), Token::Suspect);
+        keywords.insert("sus".into(), Token::Suspect);
         keywords.insert("then".into(), Token::Then);
         keywords.insert("do".into(), Token::Do);
         keywords.insert("slay".into(), Token::Slay);
