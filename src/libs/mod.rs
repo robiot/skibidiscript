@@ -4,6 +4,7 @@ use crate::{error, interpreter::Interpreter, parser::Expr};
 
 pub mod nerd;
 pub mod skui;
+pub mod apel;
 
 #[derive(Debug)]
 pub enum LibState {

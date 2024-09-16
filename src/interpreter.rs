@@ -114,6 +114,9 @@ impl Interpreter {
                     libs::skui::LIBRARY_NAME => {
                         self.libs.insert(library, libs::skui::load_skui_library());
                     }
+                    libs::apel::LIBRARY_NAME => {
+                        self.libs.insert(library, libs::apel::load_apel_library());
+                    }
                     _ => {
                         return Err(error::ParseError::GeneralError {
                             line: self.line,

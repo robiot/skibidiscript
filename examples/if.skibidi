@@ -3,7 +3,7 @@ gyatt nerd
 cookable mew()
     name is cook attemptrizz("Hey shawty, what's your name? > ")
 
-    suspect(name rizz "robiot") then
+    sus(name rizz "robiot") then
         cook yap("Gm gm TOP G", name)
     ick
         cook yap("Noob", name)
