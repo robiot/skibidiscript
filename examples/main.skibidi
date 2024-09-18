@@ -1,14 +1,12 @@
 gyatt nerd
 
+
+cookable update()
+    cook yap("Update")
+slay
+
 cookable mew()
     skibidi (sigma) do
-        output is cook attemptrizz("Vad är ditt namn?")
-
-        suspect(output rizz "jimmy") then
-            cook yap("Hej Jimmy! Du är cool")
-            blud 0
-        ick
-            cook yap("Du är inte Jimmy!")
-        slay
+        output is cook attemptrizz(update)
     slay
 slay

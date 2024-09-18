@@ -17,7 +17,7 @@ cookable mew()
         status is cook skui.pumpEvents()
 
         cook skui.goonScreen("#FF0000")
-        cook skui.goonScreen("#0000FF")
+        -- cook skui.goonScreen("#0000FF")
 
         -- cook skui.placeText("Text working", BG_COLOR)
 

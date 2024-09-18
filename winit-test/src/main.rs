@@ -41,6 +41,7 @@ fn main() -> Result<(), Error> {
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
+
     let mut world = World::new();
 
     event_loop.run(move |event, _, control_flow| {

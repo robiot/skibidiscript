@@ -1,49 +1,52 @@
+use ggez::conf::WindowMode;
+use ggez::graphics::{self, Canvas, Color, DrawMode, Mesh};
+use ggez::{Context, ContextBuilder, GameResult};
+
 use crate::libs::skui::{SkuiApp, WindowInfo};
 use crate::{error, interpreter::Interpreter, parser::Expr};
 
 use std::time::Duration;
 
-use winit::event_loop::{ControlFlow, EventLoop};
-use winit::platform::pump_events::{EventLoopExtPumpEvents, PumpStatus};
+use super::load_skui_state;
 
 // All functions
 pub fn create_window_builtin(
     itp: &mut Interpreter,
-    args: Vec<Expr>,
+    _args: Vec<Expr>,
 ) -> Result<Expr, error::ParseError> {
-    let width = itp.expr_to_number(itp.consume_argument(&args, 3, 0)?)? as u32;
-    let height = itp.expr_to_number(itp.consume_argument(&args, 3, 1)?)? as u32;
-    let title = itp.expr_to_string(itp.consume_argument(&args, 3, 2)?)?;
+    let state = load_skui_state(itp)?;
 
-    // Ensure dimensions are valid
-    if width <= 0 || height <= 0 {
-        return Err(error::ParseError::GeneralError {
-            line: itp.line,
-            message: "Window dimensions must be greater than zero.".to_string(),
-        });
-    }
+    let window_info = WindowInfo {
+        width: 800,
+        height: 600,
+        title: "Skui Window".to_string(),
+    };
 
-    let event_loop = EventLoop::new().unwrap();
+    // Initialize ggez context without starting the event loop
+    let (ctx, events_loop) = ContextBuilder::new("skui_app", "Elliot")
+        .window_mode(WindowMode::default().dimensions(800.0, 600.0))
+        .build()
+        .expect("Could not create ggez context");
 
-    // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
-    // dispatched any events. This is ideal for games and similar applications.
-    event_loop.set_control_flow(ControlFlow::Poll);
+    println!("Window created");
 
-    // ControlFlow::Wait pauses the event loop if no events are available to process.
-    // This is ideal for non-game applications that only update in response to user
-    // input, and uses significantly less power/CPU time than ControlFlow::Poll.
-    event_loop.set_control_flow(ControlFlow::Wait);
+    events_loop.run(move |mut event, _window_target, control_flow | {
+        // let ctx = &mut ctx;
 
-    let app = SkuiApp::new(WindowInfo {
-        width,
-        height,
-        title,
+        // if ctx.quit_requested {
+        //     ctx.continuing = false;
+        // }
+        // if !ctx.continuing {
+        //     *control_flow = ControlFlow::Exit;
+        //     return;
+        // }
     });
 
-    let state = super::load_skui_state(itp)?;
-
-    state.app = Some(app);
-    state.event_loop = Some(event_loop);
+    state.app = Some(SkuiApp {
+        window_info: Some(window_info),
+        square_pos: [100.0, 100.0], // Initial square position
+        ctx: Some(ctx),
+    });
 
     Ok(Expr::Boolean(true))
 }
@@ -54,11 +57,11 @@ pub fn pump_events_builtin(
 ) -> Result<Expr, error::ParseError> {
     let state = super::load_skui_state(itp)?;
 
-    let event_loop = if let Some(event_loop) = &mut state.event_loop {
-        event_loop
-    } else {
-        return Ok(Expr::Boolean(true));
-    };
+    // let event_loop = if let Some(event_loop) = &mut state.event_loop {
+    //     event_loop
+    // } else {
+    //     return Ok(Expr::Boolean(true));
+    // };
 
     let app = if let Some(app) = &mut state.app {
         app
@@ -66,13 +69,15 @@ pub fn pump_events_builtin(
         return Ok(Expr::Boolean(true));
     };
 
-    let status = event_loop.pump_app_events(Some(Duration::ZERO), app);
+    // let status = event_loop.pump_app_events(Some(Duration::ZERO), app);
 
-    if let PumpStatus::Exit(_) = status {
-        Ok(Expr::StringLiteral("exit".to_string()))
-    } else {
-        Ok(Expr::StringLiteral("ok".to_string()))
-    }
+    // if let PumpStatus::Exit(_) = status {
+    //     Ok(Expr::StringLiteral("exit".to_string()))
+    // } else {
+    //     Ok(Expr::StringLiteral("ok".to_string()))
+    // }
+
+    Ok(Expr::StringLiteral("ok".to_string()))
 }
 
 pub fn fill_screen_builtin(
@@ -85,49 +90,21 @@ pub fn fill_screen_builtin(
 
     let state = super::load_skui_state(itp)?;
 
-    
-    let app = if let Some(app) = &mut state.app {
-        app
-    } else {
-        return Ok(Expr::Boolean(false));
-    };
-
-    let pixels = if let Some(pixels) = &mut app.pixels {
-        pixels
-    } else {
-        return Ok(Expr::Boolean(false));
-    };
-
-    // let window = if let Some(window) = &mut app.window {
-    //     window
-    // } else {
-    //     return Ok(Expr::Boolean(false));
-    // };
-
-
-    let rgba =
-        super::utils::hex_to_rgba(&colorhex).map_err(|e| error::ParseError::GeneralError {
-            line,
-            message: e.to_string(),
-        })?;
-
-    println!("fill_screen_builtin: {:?}", rgba);
-    // Fill the screen with the specified color
-    let frame = pixels.frame_mut();
-    for pixel in frame.chunks_exact_mut(4) {
-        pixel.copy_from_slice(&rgba);
-    }
-
-
-    pixels.render().map_err(|e| error::ParseError::GeneralError {
-        line,
-        message: e.to_string(),
+    let app = state.app.as_mut().ok_or(error::ParseError::GeneralError {
+        line: line,
+        message: "App not initialized".to_string(),
     })?;
 
-    // Redraw the window
-    if let Some(window) = &app.window {
-        window.request_redraw();
-    }
+    let ctx = app.ctx.as_mut().ok_or(error::ParseError::GeneralError {
+        line: line,
+        message: "Context not initialized".to_string(),
+    })?;
+
+    let mut canvas = graphics::Canvas::from_frame(ctx, Color::CYAN);
+
+    println!("colorhex: {}", colorhex);
+    // Draw code here...
+    canvas.finish(ctx).unwrap();
 
     Ok(Expr::StringLiteral("ok".to_string()))
 }
