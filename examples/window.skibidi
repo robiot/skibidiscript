@@ -24,7 +24,7 @@ cookable update_box()
     slay
     
     sus(x rizz WIDTH - BOX_SIZE) then
-        velocity_x is -1
+        velocity_x is velocity_x * -1
     slay
 
     sus(y rizz 0) then
@@ -32,7 +32,7 @@ cookable update_box()
     slay
     
     sus(y rizz HEIGHT - BOX_SIZE) then
-        velocity_y is -1
+        velocity_y is velocity_x * -1
     slay
 slay
 
