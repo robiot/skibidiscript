@@ -227,6 +227,21 @@ impl<'a> Parser<'a> {
 
     fn parse_primary(&mut self) -> Result<Expr, error::ParseError> {
         match self.current_token.clone() {
+            Token::Minus => {
+                // Move past the minus sign
+                self.next_token()?;
+    
+                // Parse the next expression as the value of the negative number
+                let value = self.parse_primary()?;
+    
+                match value {
+                    Expr::Number(num) => Ok(Expr::Number(-num)),
+                    _ => Err(error::ParseError::GeneralError {
+                        line: self.lexer.line,
+                        message: format!("Expected a number after '-', found {:?}", value),
+                    }),
+                }
+            }
             // Clone here to avoid borrowing self
             Token::Cook => {
                 self.expect_token(Token::Cook)?;
