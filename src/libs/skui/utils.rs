@@ -1,9 +1,6 @@
-use pixels::Pixels;
-use winit::event_loop::EventLoop;
-
 use crate::error;
 
-use super::{SkuiApp, SkuiState, WindowInfo};
+use super::{SkuiApp, SkuiState};
 
 pub fn hex_to_rgba(hex: &str, line: usize) -> Result<[u8; 4], error::ParseError> {
     let hex = hex.trim_start_matches('#');
