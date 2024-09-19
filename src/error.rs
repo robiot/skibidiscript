@@ -129,7 +129,7 @@ impl fmt::Display for ParseError {
             } => {
                 write!(f, "on line {}: found token {:?}, but it's not expected", line, found)
             }
-            ParseError::Other(msg) => write!(f, "Parse error: {}", msg),
+            ParseError::Other(msg) => write!(f, "error: {}", msg),
         }
     }
 }
