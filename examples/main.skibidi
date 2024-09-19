@@ -1,12 +1,8 @@
-gyatt nerd
-
-
-cookable update()
-    cook yap("Update")
-slay
-
+x is 24
+WIDTH is 1000
 cookable mew()
-    skibidi (sigma) do
-        output is cook attemptrizz(update)
-    slay
+    output is 10 - 10
+
+
+    cook yap(output)
 slay

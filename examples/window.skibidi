@@ -8,31 +8,55 @@ BG_COLOR is "#000000"
 FG_COLOR is "#FFFFFF"
 BULLET_COLOR is "#000000"
 
+-- Box stuff
+BOX_SIZE is 100
+x is 24
+y is 16
+velocity_x is 1
+velocity_y is 1
+
+cookable update_box()
+    x is x + velocity_x
+    y is y + velocity_y
+
+    sus(x rizz 0) then
+        velocity_x is 1
+    slay
+    
+    sus(x rizz WIDTH - BOX_SIZE) then
+        velocity_x is -1
+    slay
+
+    sus(y rizz 0) then
+        velocity_y is 1
+    slay
+    
+    sus(y rizz HEIGHT - BOX_SIZE) then
+        velocity_y is -1
+    slay
+slay
+
+cookable draw()
+    cook skui.drawRect(BOX_SIZE, x, y, FG_COLOR)
+slay
+
 cookable mew()
     cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
 
     cook skui.setFramesPerSkibidi(FPS)
 
-    x is 100
     skibidi (sigma) do
         status is cook skui.pumpEvents()
 
         cook skui.goonScreen(BG_COLOR)
 
         -- Draw rect
-        cook skui.drawRect(100, x, 200, FG_COLOR)
+        cook update_box()
 
-        x is x + 2
-
-        -- cook skui.placeText("Text working", BG_COLOR)
+        cook draw()
 
         sus(status rizz "exit") then 
             blud 0
-        slay
-
-        sus(status rizz "keydown_space") then 
-            -- cook yap("exiting")
-            -- blud 0
         slay
 
         cook skui.renderIn4k()
