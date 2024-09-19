@@ -102,7 +102,6 @@ impl<'a> Parser<'a> {
         let mut statements = Vec::new();
         while self.current_token != Token::EOF {
             // ...debug
-            // println!("current_token: {:?}", self.current_token);
 
             let stmt = self.parse_statement()?;
             statements.push(stmt);
@@ -173,7 +172,6 @@ impl<'a> Parser<'a> {
             self.next_token()?;
 
             let value = self.parse_expression()?;
-            // println!("value: {:?}", value);
 
             Ok(Stmt::VariableAssign {
                 name,
@@ -210,6 +208,7 @@ impl<'a> Parser<'a> {
 
             // Clone the operator token and move past it
             let op_token = self.current_token.clone();
+
             self.next_token()?;
 
             // Parse the right-hand side expression with the appropriate precedence

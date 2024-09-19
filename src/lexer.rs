@@ -88,10 +88,20 @@ impl Lexer {
         }
     }
 
+    fn peek_next_char(&self) -> Option<char> {
+        // Temporarily advance the position by one character to peek ahead
+        let next_position = self.position + 1;
+
+        if next_position < self.input.len() {
+            Some(self.input[next_position])
+        } else {
+            None
+        }
+    }
+
     pub fn next_token(&mut self) -> Result<Token, error::ParseError> {
         self.skip_whitespace();
 
-        // println!("here: {:?}", self.peek_char());
         match self.next_char() {
             Some('"') => Ok(self.read_string()),
             Some('(') => Ok(Token::LeftParen),
@@ -124,12 +134,21 @@ impl Lexer {
                 if ch == '\n' {
                     self.line += 1; // Increment the line count for newlines
                 }
-                self.next_char();
+                self.next_char(); // Skip whitespace characters
             } else if ch == '-' {
-                self.next_char();
-
-                if let Some('-') = self.peek_char() {
-                    self.skip_comment();
+                // Peek at the next character
+                if let Some(next_ch) = self.peek_next_char() {
+                    if next_ch == '-' {
+                        self.next_char(); // Skip the '-' character
+                        self.next_char(); // Skip the next '-' character
+                        self.skip_comment(); // Skip the rest of the comment
+                    } else {
+                        // It's a minus sign, not the start of a comment
+                        break;
+                    }
+                } else {
+                    // It's a minus sign, not the start of a comment
+                    break;
                 }
             } else {
                 break;
