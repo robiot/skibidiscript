@@ -15,14 +15,29 @@ y is 16
 velocity_x is 1
 velocity_y is 1
 
+cookable update_box()
+    x is x + velocity_x
+    y is y + velocity_y
+
+    sus(x rizz 0) then
+        velocity_x is 1
+    slay
+    
+    sus(x rizz WIDTH - BOX_SIZE) then
+        velocity_x is velocity_x * -1
+    slay
+
+    sus(y rizz 0) then
+        velocity_y is 1
+    slay
+    
+    sus(y rizz HEIGHT - BOX_SIZE) then
+        velocity_y is velocity_x * -1
+    slay
+slay
+
 cookable draw()
-    -- cook skui.drawRect(BOX_SIZE, x, y, FG_COLOR)
-
-    -- skui.playSound("music.mp3", true)
-
-    cook skui.writeText("Hello, World!", 100, 100, 50, FG_COLOR)
-
-    cook skui.drawImage("./skibidi.png", 100, 100, 50)
+    cook skui.drawRect(BOX_SIZE, x, y, FG_COLOR)
 slay
 
 cookable mew()
@@ -36,6 +51,7 @@ cookable mew()
         cook skui.goonScreen(BG_COLOR)
 
         -- Draw rect
+        cook update_box()
 
         cook draw()
 
