@@ -1,5 +1,10 @@
 cookable mew()
     quotes is ["I'm the real alpha", "chicken nuggets"]
 
-    cook yap(cook quotes.fanumTax(cook nerd.randInt(0, 1)))
+    -- todo: add these functions
+    -- cook quotes.remove(0)
+    -- cook quotes.append()
+
+    -- cook yap(cook quotes.fanumTax(0))
+    -- cook yap(cook quotes.fanumTax(cook nerd.randInt(0, 1)))
 slay

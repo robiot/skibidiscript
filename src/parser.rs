@@ -11,6 +11,7 @@ pub enum Expr {
     StringLiteral(String),
     Boolean(bool),
     // None,
+    List(Vec<Expr>),
     FunctionCall {
         name: String,
         object: Option<Box<Expr>>,
@@ -230,10 +231,10 @@ impl<'a> Parser<'a> {
             Token::Minus => {
                 // Move past the minus sign
                 self.next_token()?;
-    
+
                 // Parse the next expression as the value of the negative number
                 let value = self.parse_primary()?;
-    
+
                 match value {
                     Expr::Number(num) => Ok(Expr::Number(-num)),
                     _ => Err(error::ParseError::GeneralError {
@@ -241,6 +242,27 @@ impl<'a> Parser<'a> {
                         message: format!("Expected a number after '-', found {:?}", value),
                     }),
                 }
+            }
+            Token::LeftBracket => {
+                self.next_token()?;
+
+                let mut elements = Vec::new();
+
+                while self.current_token != Token::RightBracket {
+                    let element = self.parse_expression()?;
+                    elements.push(element);
+
+                    // If the next token is a comma, skip it
+                    if self.current_token == Token::Comma {
+                        self.next_token()?;
+                    } else {
+                        break;
+                    }
+                }
+
+                self.expect_token(Token::RightBracket)?;
+
+                Ok(Expr::List(elements)) 
             }
             // Clone here to avoid borrowing self
             Token::Cook => {
@@ -496,7 +518,7 @@ impl<'a> Parser<'a> {
 
     fn parse_continue(&mut self) -> Result<Stmt, error::ParseError> {
         self.expect_token(Token::Ghost)?;
-    
+
         Ok(Stmt::Continue {
             line: self.lexer.line,
         })

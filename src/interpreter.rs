@@ -161,6 +161,14 @@ impl Interpreter {
             Expr::FunctionCall { name, object, args } => {
                 self.execute_function_call(name, object, args)
             }
+            Expr::List(values) => {
+                let mut evaluated_values = Vec::new();
+                for value in values {
+                    evaluated_values.push(self.evaluate_expression(value)?);
+                }
+
+                Ok(Expr::List(evaluated_values))
+            }
             Expr::BinOp { left, op, right } => {
                 let left_val = self.evaluate_expression(*left)?;
                 let right_val = self.evaluate_expression(*right)?;
