@@ -15,6 +15,7 @@ pookie Bullet()
     x is sigma
     y is sigma
     angle is sigma
+
     -- customs
     speed is 10
 

@@ -123,8 +123,6 @@ class Zombie(pygame.sprite.Sprite):
                 kills += 1
                 self.kill()
 
-
-
 # Initialize sprites
 bullets = pygame.sprite.Group()
 zombies = pygame.sprite.Group()
@@ -145,7 +143,6 @@ zombies_spawned_in_wave = 0
 running = True
 game_started = False
 game_start_time = None
-
 
 # PLAY BACKGROUND MUSIC that loops and is on 50% volume sound/skibiditoilet.mp3
 pygame.mixer.music.load('sound/skibiditoilet.mp3')
@@ -170,7 +167,6 @@ while not game_started:
     
     pygame.display.flip()
 
-
 # Main game loop
 while running:
     for event in pygame.event.get():
@@ -180,10 +176,10 @@ while running:
     # Get input
     keys = pygame.key.get_pressed()
     mouse_pos = pygame.mouse.get_pos()
-    
+
     # Update player manually
     player.handle_input(keys, mouse_pos)
-    
+
     # Spawn zombies
     if zombie_spawn_timer <= 0:
         zombies_spawned_in_wave += 1
