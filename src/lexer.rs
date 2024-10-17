@@ -5,6 +5,7 @@ use crate::error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
+    // Core
     Cookable,
     Cook,
     Is,
@@ -21,14 +22,24 @@ pub enum Token {
     Ghost,
     Ick,
     Gyatt,
+
+    // Classes
+    Pookie,
+    SelfKeyword,
+    New,
+
+    // General
     Ident(String),
     Number(i64),
     StringLiteral(String),
+    
+    // Args
     LeftParen,
     RightParen,
     LeftBracket,
     RightBracket,
     Comma,
+    // Operators
     Plus,
     Minus,
     Star,
@@ -64,6 +75,10 @@ impl Lexer {
         keywords.insert("ghost".into(), Token::Ghost);
         keywords.insert("ick".into(), Token::Ick);
         keywords.insert("gyatt".into(), Token::Gyatt);
+
+        keywords.insert("pookie".into(), Token::Pookie);
+        keywords.insert("self".into(), Token::SelfKeyword);
+        keywords.insert("new".into(), Token::New);
 
         Lexer {
             input: input.chars().collect(),
