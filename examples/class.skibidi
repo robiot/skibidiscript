@@ -1,0 +1,18 @@
+pookie Zombie()
+    cookable __edge__()
+        self.x is 0
+        self.y is 0
+        self.speed is 10
+    slay
+   
+    cookable update()
+        -- skui.drawImage("zombie.png", self.x, self.y, 0)
+    slay
+slay
+
+-- Start game
+cookable mew()
+    zombie is new Zombie()
+
+    cook zombie.update()
+slay

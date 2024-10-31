@@ -22,10 +22,25 @@ pub enum Expr {
         op: Token,
         right: Box<Expr>,
     },
+    SelfExpr,
+    NewInstance {
+        class_name: String,
+        args: Vec<Expr>,
+    },
+    FieldAssign {
+        object: Box<Expr>,
+        field_name: String,
+        value: Box<Expr>,
+    },
 }
 
 #[derive(Clone, Debug)]
 pub enum Stmt {
+    Class {
+        name: String,
+        methods: Vec<Stmt>,
+        line: usize,
+    },
     Function {
         name: String,
         body: Vec<Stmt>,
@@ -106,6 +121,8 @@ impl<'a> Parser<'a> {
 
             let stmt = self.parse_statement()?;
             statements.push(stmt);
+
+            println!("current token: {:#?}", statements);
         }
 
         Ok(statements)
@@ -113,6 +130,7 @@ impl<'a> Parser<'a> {
 
     fn parse_statement(&mut self) -> Result<Stmt, error::ParseError> {
         match self.current_token {
+            Token::Pookie => self.parse_class(),
             Token::Cookable => self.parse_function(),
             Token::Ident(_) => self.parse_variable_assign_or_expression(),
             Token::Cook => self.parse_cook_statement(),
@@ -126,6 +144,51 @@ impl<'a> Parser<'a> {
                 line: self.lexer.line,
             }),
         }
+    }
+
+    fn parse_class(&mut self) -> Result<Stmt, error::ParseError> {
+        self.expect_token(Token::Pookie)?;
+        
+        let name = if let Token::Ident(ident) = &self.current_token {
+            ident.clone()
+        } else {
+            return Err(error::ParseError::GeneralError {
+                line: self.lexer.line,
+                message: "Expected class name".to_string(),
+            });
+        };
+        
+        self.next_token()?;
+        self.expect_token(Token::LeftParen)?;
+        self.expect_token(Token::RightParen)?;
+
+        let mut methods = Vec::new();
+        let mut has_init = false;
+
+        while self.current_token != Token::Slay && self.current_token != Token::EOF {
+            let method = self.parse_function()?;
+            if let Stmt::Function { name: ref method_name, .. } = method {
+                if method_name == "__edge__" {
+                    has_init = true;
+                }
+            }
+            methods.push(method);
+        }
+
+        if !has_init {
+            return Err(error::ParseError::GeneralError {
+                line: self.lexer.line,
+                message: "Class must have an __edge__ method".to_string(),
+            });
+        }
+
+        self.expect_token(Token::Slay)?;
+
+        Ok(Stmt::Class {
+            name,
+            methods,
+            line: self.lexer.line,
+        })
     }
 
     fn parse_function(&mut self) -> Result<Stmt, error::ParseError> {
@@ -228,6 +291,55 @@ impl<'a> Parser<'a> {
 
     fn parse_primary(&mut self) -> Result<Expr, error::ParseError> {
         match self.current_token.clone() {
+            Token::SelfKeyword => {
+                self.next_token()?;
+                if self.current_token == Token::Dot {
+                    self.next_token()?;
+                    if let Token::Ident(field_name) = &self.current_token {
+                        let field_name = field_name.clone();
+                        self.next_token()?;
+                        Ok(Expr::FunctionCall {
+                            name: field_name,
+                            object: Some(Box::new(Expr::SelfExpr)),
+                            args: vec![],
+                        })
+                    } else {
+                        Err(error::ParseError::GeneralError {
+                            line: self.lexer.line,
+                            message: "Expected field name after 'self.'".to_string(),
+                        })
+                    }
+                } else {
+                    Ok(Expr::SelfExpr)
+                }
+            },
+            Token::New => {
+                self.next_token()?;
+                if let Token::Ident(class_name) = &self.current_token {
+                    let class_name = class_name.clone();
+                    self.next_token()?;
+                    self.expect_token(Token::LeftParen)?;
+                    
+                    let mut args = Vec::new();
+                    while self.current_token != Token::RightParen {
+                        args.push(self.parse_expression()?);
+                        if self.current_token == Token::Comma {
+                            self.next_token()?;
+                        }
+                    }
+                    
+                    self.expect_token(Token::RightParen)?;
+                    Ok(Expr::NewInstance {
+                        class_name,
+                        args,
+                    })
+                } else {
+                    Err(error::ParseError::GeneralError {
+                        line: self.lexer.line,
+                        message: "Expected class name after 'new'".to_string(),
+                    })
+                }
+            },
             Token::Minus => {
                 // Move past the minus sign
                 self.next_token()?;

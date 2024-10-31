@@ -135,7 +135,7 @@ impl Lexer {
             Some('/') => Ok(Token::Slash),
             Some('>') => Ok(Token::GreaterThan),
             Some('<') => Ok(Token::LessThan),
-            Some(ch) if ch.is_alphabetic() => Ok(self.read_identifier_or_keyword(ch)),
+            Some(ch) if ch.is_alphabetic() || ch == '_' => Ok(self.read_identifier_or_keyword(ch)),
             Some(ch) if ch.is_digit(10) => Ok(self.read_number(ch)),
             None => Ok(Token::EOF),
             Some(ch) => match ch {

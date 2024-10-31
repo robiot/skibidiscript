@@ -20,9 +20,9 @@ zombies is []
 playerSpr is 0
 
 pookie Bullet()
-    cookable __init__(x, y, target)
-        self.x is x
-        self.y is y
+    cookable __edge__()
+        self.x is 0
+        self.y is 0
         self.target is target
         self.speed is 10
 
@@ -53,9 +53,9 @@ pookie Bullet()
 slay
 
 pookie Zombie()
-    cookable __init__(x, y)
-        self.x is x
-        self.y is y
+    cookable __edge__()
+        self.x is 0
+        self.y is 0
         self.speed is 10
     slay
    

@@ -136,9 +136,11 @@ impl Interpreter {
                 self.line = line;
                 Ok(ControlFlow::Continue)
             } // _ => Err(error::ParseError::GeneralError {
-              //     line: self.line,
-              //     message: "Unsupported statement".to_string(),
-              // }),
+            //     line: self.line,
+            //     message: "Unsupported statement".to_string(),
+            // }),
+            // tmpo
+            _ => Ok(ControlFlow::None),
         }
     }
 
@@ -291,6 +293,11 @@ impl Interpreter {
                     }),
                 }
             }
+            //tmpo
+            _ => Err(error::ParseError::GeneralError {
+                line: self.line,
+                message: "Unsupported expression".to_string(),
+            }),
         }
     }
 
