@@ -5,9 +5,16 @@ pookie Zombie()
         self.speed is 10
     slay
    
+    cookable test()
+    -- skui.drawImage("zombie.png", self.x, self.y, 0)
+    slay
+
     cookable update()
         -- skui.drawImage("zombie.png", self.x, self.y, 0)
+        cook self.test()
     slay
+
+  
 slay
 
 -- Start game

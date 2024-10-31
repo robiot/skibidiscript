@@ -43,6 +43,7 @@ pub enum Stmt {
     },
     VariableAssign {
         name: String,
+        object: Option<Box<Expr>>,
         value: Expr,
         line: usize,
     },
@@ -123,7 +124,7 @@ impl<'a> Parser<'a> {
             let stmt = self.parse_statement()?;
             statements.push(stmt);
 
-            println!("current token: {:#?}", statements);
+            // println!("current token: {:#?}", statements);
         }
 
         Ok(statements)
@@ -133,7 +134,7 @@ impl<'a> Parser<'a> {
         match self.current_token {
             Token::Pookie => self.parse_class(),
             Token::Cookable => self.parse_function(),
-            Token::Ident(_) => self.parse_variable_assign_or_expression(),
+            Token::Ident(_) | Token::SelfKeyword => self.parse_variable_assign_or_expression(),
             Token::Cook => self.parse_cook_statement(),
             Token::Gyatt => self.parse_import_statement(),
             Token::Skibidi => self.parse_while(),
@@ -168,6 +169,7 @@ impl<'a> Parser<'a> {
         let mut has_init = false;
 
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
+            println!("method: parsing"); 
             let method = self.parse_function()?;
             if let Stmt::Function {
                 name: ref method_name,
@@ -217,6 +219,7 @@ impl<'a> Parser<'a> {
 
         let mut body = Vec::new();
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
+            println!("function: parsing BODY");
             body.push(self.parse_statement()?);
         }
 
@@ -230,27 +233,63 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_variable_assign_or_expression(&mut self) -> Result<Stmt, error::ParseError> {
-        let name = if let Token::Ident(ident) = &self.current_token {
-            Ok(ident.clone())
-        } else {
-            Err(error::ParseError::Other("Expected identifier".into()))
-        }?;
-
-        self.next_token()?;
-
+        let (object, name) = match &self.current_token {
+            Token::SelfKeyword => {
+                self.next_token()?; // Move past 'self'
+                
+                // Expect a dot after 'self'
+                if self.current_token != Token::Dot {
+                    return Err(error::ParseError::UnexpectedToken {
+                        expected: Token::Dot,
+                        found: self.current_token.clone(),
+                        line: self.lexer.line,
+                    });
+                }
+                self.next_token()?; // Move past dot
+                
+                // Get the property name
+                let property_name = if let Token::Ident(ident) = &self.current_token {
+                    ident.clone()
+                } else {
+                    return Err(error::ParseError::GeneralError {
+                        line: self.lexer.line,
+                        message: "Expected identifier after 'self.'".to_string(),
+                    });
+                };
+                
+                self.next_token()?;
+                (Some(Box::new(Expr::SelfExpr)), property_name)
+            },
+            Token::Ident(ident) => {
+                let name = ident.clone();
+                self.next_token()?;
+                (None, name)
+            },
+            _ => return Err(error::ParseError::Other("Expected identifier or self keyword".into())),
+        };
+    
         if self.current_token == Token::Is {
             self.next_token()?;
-
+    
             let value = self.parse_expression()?;
-
-            Ok(Stmt::VariableAssign {
-                name,
-                value,
-                line: self.lexer.line,
-            })
+    
+            match object {
+                Some(obj) => Ok(Stmt::VariableAssign {
+                    name,
+                    object: Some(obj),
+                    value,
+                    line: self.lexer.line,
+                }),
+                None => Ok(Stmt::VariableAssign {
+                    name,
+                    object: None,
+                    value,
+                    line: self.lexer.line,
+                }),
+            }
         } else {
             let expr = self.parse_expression()?;
-
+    
             Ok(Stmt::Expression {
                 value: expr,
                 line: self.lexer.line,
@@ -297,29 +336,29 @@ impl<'a> Parser<'a> {
 
     fn parse_primary(&mut self) -> Result<Expr, error::ParseError> {
         match self.current_token.clone() {
-            Token::SelfKeyword => {
-                println!("encounteredself keyword");
-                self.next_token()?;
-                if self.current_token == Token::Dot {
-                    self.next_token()?;
-                    if let Token::Ident(field_name) = &self.current_token {
-                        let field_name = field_name.clone();
-                        self.next_token()?;
-                        Ok(Expr::FunctionCall {
-                            name: field_name,
-                            object: Some(Box::new(Expr::SelfExpr)),
-                            args: vec![],
-                        })
-                    } else {
-                        Err(error::ParseError::GeneralError {
-                            line: self.lexer.line,
-                            message: "Expected field name after 'self.'".to_string(),
-                        })
-                    }
-                } else {
-                    Ok(Expr::SelfExpr)
-                }
-            }
+            // Token::SelfKeyword => {
+            //     println!("encounteredself keyword");
+            //     self.next_token()?;
+            //     if self.current_token == Token::Dot {
+            //         self.next_token()?;
+            //         if let Token::Ident(field_name) = &self.current_token {
+            //             let field_name = field_name.clone();
+            //             self.next_token()?;
+            //             Ok(Expr::FunctionCall {
+            //                 name: field_name,
+            //                 object: Some(Box::new(Expr::SelfExpr)),
+            //                 args: vec![],
+            //             })
+            //         } else {
+            //             Err(error::ParseError::GeneralError {
+            //                 line: self.lexer.line,
+            //                 message: "Expected field name after 'self.'".to_string(),
+            //             })
+            //         }
+            //     } else {
+            //         Ok(Expr::SelfExpr)
+            //     }
+            // }
             Token::New => {
                 self.next_token()?;
                 if let Token::Ident(class_name) = &self.current_token {
