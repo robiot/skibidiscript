@@ -11,6 +11,7 @@ pookie Zombie()
 
     cookable update()
         -- skui.drawImage("zombie.png", self.x, self.y, 0)
+        -- todo, make self work as object for calling functions
         cook self.test()
     slay
 
