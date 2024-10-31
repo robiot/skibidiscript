@@ -22,6 +22,8 @@ pub enum Token {
     Ghost,
     Ick,
     Gyatt,
+    Goon,
+    In,
 
     // Classes
     Pookie,
@@ -75,10 +77,13 @@ impl Lexer {
         keywords.insert("ghost".into(), Token::Ghost);
         keywords.insert("ick".into(), Token::Ick);
         keywords.insert("gyatt".into(), Token::Gyatt);
+        keywords.insert("goon".into(), Token::Goon);
+        keywords.insert("in".into(), Token::In);
 
         keywords.insert("pookie".into(), Token::Pookie);
         keywords.insert("self".into(), Token::SelfKeyword);
         keywords.insert("new".into(), Token::New);
+
 
         Lexer {
             input: input.chars().collect(),

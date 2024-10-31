@@ -19,6 +19,8 @@ zombies is []
 
 playerSpr is 0
 
+-- https://chatgpt.com/share/6723d031-8224-8002-ba91-cb28e943dc53
+
 pookie Bullet()
     cookable __edge__()
         self.x is 0
@@ -82,11 +84,11 @@ cookable mew()
         -- Draw player
         playerSpr.draw()
     
-        for (bullet in bullets) do
+        goon (bullet in bullets) do
             bullet.update()
         slay
     
-        for (zombies in zombies) do
+        goon (zombies in zombies) do
             zombies.update()
         slay
     

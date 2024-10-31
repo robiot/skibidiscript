@@ -27,11 +27,6 @@ pub enum Expr {
         class_name: String,
         args: Vec<Expr>,
     },
-    FieldAssign {
-        object: Box<Expr>,
-        field_name: String,
-        value: Box<Expr>,
-    },
 }
 
 #[derive(Clone, Debug)]
@@ -75,6 +70,12 @@ pub enum Stmt {
         line: usize,
     },
     Continue {
+        line: usize,
+    },
+    ForLoop {
+        iterator: String,
+        collection: Expr,
+        body: Vec<Stmt>,
         line: usize,
     },
 }
@@ -136,6 +137,7 @@ impl<'a> Parser<'a> {
             Token::Cook => self.parse_cook_statement(),
             Token::Gyatt => self.parse_import_statement(),
             Token::Skibidi => self.parse_while(),
+            Token::Goon => self.parse_for_loop(),
             Token::Suspect => self.parse_if(),
             Token::Blud => self.parse_return(),
             Token::Ghost => self.parse_continue(),
@@ -148,7 +150,7 @@ impl<'a> Parser<'a> {
 
     fn parse_class(&mut self) -> Result<Stmt, error::ParseError> {
         self.expect_token(Token::Pookie)?;
-        
+
         let name = if let Token::Ident(ident) = &self.current_token {
             ident.clone()
         } else {
@@ -157,7 +159,7 @@ impl<'a> Parser<'a> {
                 message: "Expected class name".to_string(),
             });
         };
-        
+
         self.next_token()?;
         self.expect_token(Token::LeftParen)?;
         self.expect_token(Token::RightParen)?;
@@ -167,7 +169,11 @@ impl<'a> Parser<'a> {
 
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
             let method = self.parse_function()?;
-            if let Stmt::Function { name: ref method_name, .. } = method {
+            if let Stmt::Function {
+                name: ref method_name,
+                ..
+            } = method
+            {
                 if method_name == "__edge__" {
                     has_init = true;
                 }
@@ -292,6 +298,7 @@ impl<'a> Parser<'a> {
     fn parse_primary(&mut self) -> Result<Expr, error::ParseError> {
         match self.current_token.clone() {
             Token::SelfKeyword => {
+                println!("encounteredself keyword");
                 self.next_token()?;
                 if self.current_token == Token::Dot {
                     self.next_token()?;
@@ -312,14 +319,14 @@ impl<'a> Parser<'a> {
                 } else {
                     Ok(Expr::SelfExpr)
                 }
-            },
+            }
             Token::New => {
                 self.next_token()?;
                 if let Token::Ident(class_name) = &self.current_token {
                     let class_name = class_name.clone();
                     self.next_token()?;
                     self.expect_token(Token::LeftParen)?;
-                    
+
                     let mut args = Vec::new();
                     while self.current_token != Token::RightParen {
                         args.push(self.parse_expression()?);
@@ -327,19 +334,16 @@ impl<'a> Parser<'a> {
                             self.next_token()?;
                         }
                     }
-                    
+
                     self.expect_token(Token::RightParen)?;
-                    Ok(Expr::NewInstance {
-                        class_name,
-                        args,
-                    })
+                    Ok(Expr::NewInstance { class_name, args })
                 } else {
                     Err(error::ParseError::GeneralError {
                         line: self.lexer.line,
                         message: "Expected class name after 'new'".to_string(),
                     })
                 }
-            },
+            }
             Token::Minus => {
                 // Move past the minus sign
                 self.next_token()?;
@@ -374,7 +378,7 @@ impl<'a> Parser<'a> {
 
                 self.expect_token(Token::RightBracket)?;
 
-                Ok(Expr::List(elements)) 
+                Ok(Expr::List(elements))
             }
             // Clone here to avoid borrowing self
             Token::Cook => {
@@ -475,16 +479,6 @@ impl<'a> Parser<'a> {
 
                 Ok(Expr::Boolean(false))
             }
-            // all math operators
-            // Token::Plus | Token::Minus | Token::Star | Token::Slash | Token::Rizz => {
-            //     let left = Box::new(Expr::Number(0)); // Default value
-            //     let op = self.current_token.clone();
-
-            //     self.next_token()?; // Move past the operator.
-            //     let right = Box::new(self.parse_expression()?);
-
-            //     Ok(Expr::BinOp { left, op, right })
-            // }
             _ => Err(error::ParseError::UnknownUnexpectedToken {
                 found: self.current_token.clone(),
                 line: self.lexer.line,
@@ -572,6 +566,51 @@ impl<'a> Parser<'a> {
 
         Ok(Stmt::While {
             condition,
+            body,
+            line: self.lexer.line,
+        })
+    }
+
+    fn parse_for_loop(&mut self) -> Result<Stmt, error::ParseError> {
+        self.next_token()?; // Move past 'for'
+        self.expect_token(Token::LeftParen)?;
+
+        let iterator = if let Token::Ident(name) = &self.current_token {
+            name.clone()
+        } else {
+            return Err(error::ParseError::GeneralError {
+                line: self.lexer.line,
+                message: "Expected iterator variable name".to_string(),
+            });
+        };
+
+        self.next_token()?;
+        self.expect_token(Token::In)?;
+
+        let collection = self.parse_expression()?;
+
+        // error if collection is not a list
+        if let Expr::List(_) = collection {
+        } else {
+            return Err(error::ParseError::GeneralError {
+                line: self.lexer.line,
+                message: "Expected list after 'in'".to_string(),
+            });
+        }
+
+        self.expect_token(Token::RightParen)?;
+        self.expect_token(Token::Do)?;
+
+        let mut body = Vec::new();
+        while self.current_token != Token::Slay && self.current_token != Token::EOF {
+            body.push(self.parse_statement()?);
+        }
+
+        self.expect_token(Token::Slay)?;
+
+        Ok(Stmt::ForLoop {
+            iterator,
+            collection,
             body,
             line: self.lexer.line,
         })
