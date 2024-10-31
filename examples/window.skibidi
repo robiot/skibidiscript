@@ -8,23 +8,6 @@ BG_COLOR is "#000000"
 FG_COLOR is "#FFFFFF"
 BULLET_COLOR is "#000000"
 
--- Box stuff
-BOX_SIZE is 100
-x is 24
-y is 16
-velocity_x is 1
-velocity_y is 1
-
-cookable draw()
-    -- cook skui.drawRect(BOX_SIZE, x, y, FG_COLOR)
-
-    -- skui.playSound("music.mp3", true)
-
-    cook skui.writeText("Hello, World!", 100, 100, 50, FG_COLOR)
-
-    cook skui.drawImage("./skibidi.png", 100, 100, 50)
-slay
-
 cookable mew()
     cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
 
@@ -34,10 +17,6 @@ cookable mew()
         status is cook skui.pumpEvents()
 
         cook skui.goonScreen(BG_COLOR)
-
-        -- Draw rect
-
-        cook draw()
 
         sus(status rizz "exit") then 
             blud 0
