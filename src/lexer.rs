@@ -81,7 +81,7 @@ impl Lexer {
         keywords.insert("in".into(), Token::In);
 
         keywords.insert("pookie".into(), Token::Pookie);
-        keywords.insert("self".into(), Token::SelfKeyword);
+        // keywords.insert("self".into(), Token::SelfKeyword);
         keywords.insert("new".into(), Token::New);
 
 

@@ -1,3 +1,6 @@
+
+cook yap(self.x)
+
 pookie Zombie()
     cookable __edge__()
         self.x is 0
@@ -10,12 +13,13 @@ pookie Zombie()
     slay
 
     cookable update()
+        x is "as"
         -- skui.drawImage("zombie.png", self.x, self.y, 0)
         -- todo, make self work as object for calling functions
-        cook self.test()
-    slay
+        cook self.test(x)
 
-  
+        -- cook 
+    slay
 slay
 
 -- Start game
