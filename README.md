@@ -1,6 +1,8 @@
 # skibidiscript
 Instead of yapping in text. Yap with this language and create something.
 
+NOTE: this language is in progress,
+im currently implementing classes, and then imma make the SKUI (skibidi ui) more advanced 
 
 ```lua
 gyatt nerd
