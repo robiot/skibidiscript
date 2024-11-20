@@ -1,0 +1,9 @@
+cookable test() 
+    blud 0
+slay
+
+cookable mew()
+    -- status is cook aa.test()
+    cook self.test("as")
+    -- aa.status is 2
+slay

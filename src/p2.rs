@@ -172,7 +172,6 @@ impl<'a> Parser<'a> {
         let mut has_init = false;
 
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
-            println!("method: parsing");
             let method = self.parse_function()?;
             if let Stmt::Function {
                 name: ref method_name,
@@ -236,73 +235,31 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_variable_assign_or_expression(&mut self) -> Result<Stmt, error::ParseError> {
-        let (object, name) = match &self.current_token {
-            Token::Ident(ident) => {
-                let name = ident.clone();
+        let name = if let Token::Ident(ident) = &self.current_token {
+            Ok(ident.clone())
+        } else {
+            Err(error::ParseError::Other("Expected identifier".into()))
+        }?;
 
-                self.next_token()?;
-
-                // Expect a dot after 'self'
-                if self.current_token == Token::Dot {
-                    self.next_token()?; // Move past dot
-
-                    // Get the property name
-                    let property_name = if let Token::Ident(ident) = &self.current_token {
-                        ident.clone()
-                    } else {
-                        return Err(error::ParseError::GeneralError {
-                            line: self.lexer.line,
-                            message: "Expected identifier after 'self.'".to_string(),
-                        });
-                    };
-
-                    self.next_token()?;
-
-                    // if let Token::Ident(variable_name) = &self.current_token.clone() {
-                    //     self.next_token()?;
-
-                    //     // Handle function calls
-                    //     expr = Expr::ObjectValue {
-                    //         name: variable_name.clone(),
-                    //         object: Some(Box::new(expr)),
-                    //     };
-                    // } else {
-                    //     return Err(error::ParseError::UnexpectedToken {
-                    //         line: self.lexer.line,
-                    //         expected: Token::Ident("variable name after .".into()),
-                    //         found: self.current_token.clone(),
-                    //     });
-                    // }
-
-                    (Some(Box::new(Expr::Ident(name))), property_name)
-                } else {
-                    (None, name)
-                }
-            }
-            _ => return Err(error::ParseError::Other("Expected identifier".into())),
-        };
+        self.next_token()?;
 
         if self.current_token == Token::Is {
+            // println!("Parsing not");
+
             self.next_token()?;
 
-            // 1HERE: FAULT
             let value = self.parse_expression()?;
 
-            match object {
-                Some(obj) => Ok(Stmt::VariableAssign {
-                    name,
-                    object: Some(obj),
-                    value,
-                    line: self.lexer.line,
-                }),
-                None => Ok(Stmt::VariableAssign {
-                    name,
-                    object: None,
-                    value,
-                    line: self.lexer.line,
-                }),
-            }
+            println!("{:?}", value);
+
+            Ok(Stmt::VariableAssign {
+                name,
+                object: None,
+                value,
+                line: self.lexer.line,
+            })
         } else {
+            println!("Parsing expression");
             let expr = self.parse_expression()?;
 
             Ok(Stmt::Expression {
@@ -418,16 +375,15 @@ impl<'a> Parser<'a> {
                 Ok(function_call)
             }
             Token::Ident(ref ident) => {
-                // Handle idents with dots
                 let mut expr = Expr::Ident(ident.clone());
-                self.next_token()?;
+                self.next_token()?; // Now you can mutate self safely.
 
-                // todo: This is THE logic that is broken, currently supports definitions in the variable name with object, but not function calls on objects, sadge
                 while self.current_token == Token::Dot {
-                    self.next_token()?;
+                    self.next_token()?; // Move past the dot.
 
-                    if let Token::Ident(objectname) = &self.current_token.clone() {
-                        self.next_token()?;
+                    if let Token::Ident(method_name) = &self.current_token.clone() {
+                        // Clone here to avoid borrow
+                        self.next_token()?; // Move past the method name.
 
                         // Handle function calls
                         if self.current_token == Token::LeftParen {
@@ -445,26 +401,49 @@ impl<'a> Parser<'a> {
                             self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
 
                             expr = Expr::FunctionCall {
-                                name: objectname.clone(),
+                                name: method_name.clone(),
                                 object: Some(Box::new(expr)),
                                 args,
                             };
                         } else {
-                            expr = Expr::ObjectValue {
-                                name: objectname.clone(),
-                                object: Some(Box::new(expr)),
-                            };
+                            return Err(error::ParseError::UnexpectedToken {
+                                line: self.lexer.line,
+                                expected: Token::LeftParen,
+                                found: self.current_token.clone(),
+                            });
                         }
                     } else {
                         return Err(error::ParseError::UnexpectedToken {
                             line: self.lexer.line,
-                            expected: Token::Ident("variable name after .".into()),
+                            expected: Token::Ident("method name after .".into()),
                             found: self.current_token.clone(),
                         });
                     }
                 }
 
-                Ok(expr)
+                // Handle regular function calls
+                if self.current_token == Token::LeftParen {
+                    self.next_token()?; // Move past '('.
+                    let mut args = Vec::new();
+
+                    if self.current_token != Token::RightParen {
+                        args.push(self.parse_expression()?);
+                        while self.current_token == Token::Comma {
+                            self.next_token()?;
+                            args.push(self.parse_expression()?);
+                        }
+                    }
+
+                    self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
+
+                    Ok(Expr::FunctionCall {
+                        name: ident.clone(),
+                        object: None,
+                        args,
+                    })
+                } else {
+                    Ok(expr)
+                }
             }
             Token::Number(num) => {
                 let value = num;
@@ -488,11 +467,15 @@ impl<'a> Parser<'a> {
 
                 Ok(Expr::Boolean(false))
             }
-            _ => Err(error::ParseError::UnknownUnexpectedToken {
-                found: self.current_token.clone(),
-                line: self.lexer.line,
-            }),
+            _ => {
+                return Err(error::ParseError::UnknownUnexpectedToken {
+                    found: self.current_token.clone(),
+                    line: self.lexer.line,
+                })
+            }
         };
+
+        println!("thign:{:#?}", thing);
 
         thing
     }
@@ -527,79 +510,7 @@ impl<'a> Parser<'a> {
         };
 
         // Parse the function call expression.
-        // let function_call = self.parse_expression()?; // This will handle the parsing of the function call.
-
-        let function_call = {
-            let mut expr = Expr::Ident(ident.clone());
-            self.next_token()?; // Now you can mutate self safely.
-
-            while self.current_token == Token::Dot {
-                self.next_token()?; // Move past the dot.
-
-                if let Token::Ident(method_name) = &self.current_token.clone() {
-                    // Clone here to avoid borrow
-                    self.next_token()?; // Move past the method name.
-
-                    // Handle function calls
-                    if self.current_token == Token::LeftParen {
-                        self.next_token()?; // Move past '('.
-                        let mut args = Vec::new();
-
-                        if self.current_token != Token::RightParen {
-                            args.push(self.parse_expression()?);
-                            while self.current_token == Token::Comma {
-                                self.next_token()?;
-                                args.push(self.parse_expression()?);
-                            }
-                        }
-
-                        self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
-
-                        expr = Expr::FunctionCall {
-                            name: method_name.clone(),
-                            object: Some(Box::new(expr)),
-                            args,
-                        };
-                    } else {
-                        return Err(error::ParseError::UnexpectedToken {
-                            line: self.lexer.line,
-                            expected: Token::LeftParen,
-                            found: self.current_token.clone(),
-                        });
-                    }
-                } else {
-                    return Err(error::ParseError::UnexpectedToken {
-                        line: self.lexer.line,
-                        expected: Token::Ident("method name after .".into()),
-                        found: self.current_token.clone(),
-                    });
-                }
-            }
-
-            // Handle regular function calls
-            if self.current_token == Token::LeftParen {
-                self.next_token()?; // Move past '('.
-                let mut args = Vec::new();
-
-                if self.current_token != Token::RightParen {
-                    args.push(self.parse_expression()?);
-                    while self.current_token == Token::Comma {
-                        self.next_token()?;
-                        args.push(self.parse_expression()?);
-                    }
-                }
-
-                self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
-
-                Ok(Expr::FunctionCall {
-                    name: ident.clone(),
-                    object: None,
-                    args,
-                })
-            } else {
-                Ok(expr)
-            }
-        }?;
+        let function_call = self.parse_expression()?; // This will handle the parsing of the function call.
 
         // We assume that this function call is the entire statement.
         Ok(Stmt::Expression {

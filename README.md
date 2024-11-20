@@ -3,7 +3,7 @@ Instead of yapping in text. Yap with this language and create something.
 
 
 ## Problems rn
-- Cant assign variable to function value if function is called on object (library) status is skui.pumpEvents()
+- Can't assign variable to function value if function is called on object (library) status is skui.pumpEvents()
 - Can't interpret class definitions
 - Line count wrong
 

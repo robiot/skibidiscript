@@ -46,7 +46,8 @@ cookable mew()
     cook skui.setFramesPerSkibidi(FPS)
 
     skibidi(sigma) do
-        status is cook skui.pumpEvents()
+        status is cook pumpEvents()
+        -- status is cook skui.pumpEvents()
 
         cook skui.goonScreen(BG_COLOR)
 
@@ -55,9 +56,9 @@ cookable mew()
 
         cook draw()
 
-        sus(status rizz "exit") then 
-            blud 0
-        slay
+        -- sus(status rizz "exit") then 
+        --     blud 0
+        -- slay
 
         cook skui.renderIn4k()
         cook skui.clockEdge()
