@@ -45,7 +45,7 @@ cookable mew()
 
     cook skui.setFramesPerSkibidi(FPS)
 
-    skibidi (sigma) do
+    skibidi(sigma) do
         status is cook skui.pumpEvents()
 
         cook skui.goonScreen(BG_COLOR)

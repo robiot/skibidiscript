@@ -296,7 +296,7 @@ impl Interpreter {
             //tmpo
             _ => Err(error::ParseError::GeneralError {
                 line: self.line,
-                message: "Unsupported expression".to_string(),
+                message: format!("Unsupported expression {:?}", expr),
             }),
         }
     }

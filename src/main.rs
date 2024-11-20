@@ -55,23 +55,23 @@ fn main() {
 
     println!("statements: {:#?}", statements);
 
-    // let mut interpreter = Interpreter::new();
-    // match interpreter.interpret(statements) {
-    //     Ok(_) => {}
-    //     Err(e) => {
-    //         println!("interpreter: {}", e);
+    let mut interpreter = Interpreter::new();
+    match interpreter.interpret(statements) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("interpreter: {}", e);
 
-    //         return;
-    //     }
-    // };
+            return;
+        }
+    };
 
     // Run the mew function, which is the main function
-    // match interpreter.execute_user_function("mew".to_string(), vec![]) {
-    //     Ok(_) => {}
-    //     Err(e) => {
-    //         println!("interpreter: {}", e);
+    match interpreter.execute_user_function("mew".to_string(), vec![]) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("interpreter: {}", e);
 
-    //         return;
-    //     }
-    // };
+            return;
+        }
+    };
 }

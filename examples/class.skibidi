@@ -1,15 +1,14 @@
-
-cook yap(self.x)
+gyatt skui
 
 pookie Zombie()
     cookable __edge__()
-        self.x is 0
-        self.y is 0
-        self.speed is 10
+        -- self.x is 0
+        -- self.y is 0
+        -- self.speed is 10
     slay
    
     cookable test()
-    -- skui.drawImage("zombie.png", self.x, self.y, 0)
+        -- skui.drawImage("zombie.png", self.x, self.y, 0)
     slay
 
     cookable update()
@@ -17,7 +16,6 @@ pookie Zombie()
         -- skui.drawImage("zombie.png", self.x, self.y, 0)
         -- todo, make self work as object for calling functions
         cook self.test(x)
-
         -- cook 
     slay
 slay
