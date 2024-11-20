@@ -1,6 +1,8 @@
 # skibidiscript
 Instead of yapping in text. Yap with this language and create something.
 
+NOTE: this language is in progress,
+im currently implementing classes, and then imma make the SKUI (skibidi ui) more advanced 
 
 ## Problems rn
 - Can't assign variable to function value if function is called on object (library) status is skui.pumpEvents()
