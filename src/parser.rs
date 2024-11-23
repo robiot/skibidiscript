@@ -421,19 +421,19 @@ impl<'a> Parser<'a> {
                 // Handle idents with dots
                 let mut expr = Expr::Ident(ident.clone());
                 self.next_token()?;
-
-                // todo: This is THE logic that is broken, currently supports definitions in the variable name with object, but not function calls on objects, sadge
+            
+                // Handle dot notation (object methods/properties)
                 while self.current_token == Token::Dot {
                     self.next_token()?;
-
+            
                     if let Token::Ident(objectname) = &self.current_token.clone() {
                         self.next_token()?;
-
+            
                         // Handle function calls
                         if self.current_token == Token::LeftParen {
                             self.next_token()?; // Move past '('.
                             let mut args = Vec::new();
-
+            
                             if self.current_token != Token::RightParen {
                                 args.push(self.parse_expression()?);
                                 while self.current_token == Token::Comma {
@@ -441,9 +441,9 @@ impl<'a> Parser<'a> {
                                     args.push(self.parse_expression()?);
                                 }
                             }
-
-                            self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
-
+            
+                            self.expect_token(Token::RightParen)?;
+            
                             expr = Expr::FunctionCall {
                                 name: objectname.clone(),
                                 object: Some(Box::new(expr)),
@@ -463,9 +463,31 @@ impl<'a> Parser<'a> {
                         });
                     }
                 }
-
+            
+                // Add this block to handle standalone function calls
+                if self.current_token == Token::LeftParen {
+                    self.next_token()?; // Move past '('.
+                    let mut args = Vec::new();
+            
+                    if self.current_token != Token::RightParen {
+                        args.push(self.parse_expression()?);
+                        while self.current_token == Token::Comma {
+                            self.next_token()?;
+                            args.push(self.parse_expression()?);
+                        }
+                    }
+            
+                    self.expect_token(Token::RightParen)?;
+            
+                    expr = Expr::FunctionCall {
+                        name: ident.clone(),
+                        object: None,
+                        args,
+                    };
+                }
+            
                 Ok(expr)
-            }
+            },
             Token::Number(num) => {
                 let value = num;
                 self.next_token()?;
@@ -553,6 +575,7 @@ impl<'a> Parser<'a> {
                             }
                         }
 
+                        println!("before");
                         self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
 
                         expr = Expr::FunctionCall {
@@ -588,6 +611,11 @@ impl<'a> Parser<'a> {
                         args.push(self.parse_expression()?);
                     }
                 }
+
+                // todo: check in before, where it worked, if its also a ident or a functioncall.
+                println!("{:?}", args);
+
+                println!("todo:HERE HERE HERE, ERROR, CAN'T PARSE FUNCTION CALLS AS PARAMETER TO FUNCTION IF NOT OBJECT, ex. nn.randInt works while funct() doesnt");
 
                 self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
 
