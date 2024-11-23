@@ -2,9 +2,9 @@ gyatt skui
 
 pookie Zombie()
     cookable __edge__()
-        -- self.x is 0
-        -- self.y is 0
-        -- self.speed is 10
+        self.x is 0
+        self.y is 0
+        self.speed is 10
     slay
    
     cookable test()

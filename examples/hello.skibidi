@@ -1,0 +1,3 @@
+cookable mew()
+    cook yap("Hello, World!")
+slay
