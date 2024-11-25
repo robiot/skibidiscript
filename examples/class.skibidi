@@ -1,22 +1,20 @@
-gyatt skui
-
 pookie Zombie()
     cookable __edge__()
+        cook yap("Pookie was edged")
+
         self.x is 0
         self.y is 0
         self.speed is 10
     slay
    
     cookable test()
-        -- skui.drawImage("zombie.png", self.x, self.y, 0)
+        cook yap("Test was ran")
     slay
 
     cookable update()
-        x is "as"
-        -- skui.drawImage("zombie.png", self.x, self.y, 0)
-        -- todo, make self work as object for calling functions
-        cook self.test(x)
-        -- cook 
+        cook yap("Update was ran externally")
+
+        cook self.test()
     slay
 slay
 

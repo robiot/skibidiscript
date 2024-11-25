@@ -46,7 +46,7 @@ impl Interpreter {
                 self.functions.insert(name, body);
                 Ok(ControlFlow::None)
             }
-            Stmt::VariableAssign { name, object, value, line } => {
+            Stmt::VariableAssign { name, object: _, value, line } => {
                 self.line = line;
                 let evaluated = self.evaluate_expression(value)?;
                 self.variables.insert(name, evaluated);
