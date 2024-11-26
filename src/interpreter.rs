@@ -498,6 +498,7 @@ impl Interpreter {
                     // ...
 
                     // TODO: needs to get the function from the class definition somehow, currently no way to reverse lookup
+                    // check claude, I starred a thing there
                 }
                 Expr::Ident(object) => {
                     let lib_name = object.clone();
