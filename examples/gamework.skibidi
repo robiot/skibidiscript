@@ -95,7 +95,7 @@ cookable mew()
         cook playerSpr.update()
     
         -- Finally refresh the thing
-        
+
         cook skui.renderIn4k()
         cook skui.clockEdge()
     slay

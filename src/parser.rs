@@ -612,12 +612,7 @@ impl<'a> Parser<'a> {
                     }
                 }
 
-                // todo: check in before, where it worked, if its also a ident or a functioncall.
-                println!("{:?}", args);
-
-                println!("todo:HERE HERE HERE, ERROR, CAN'T PARSE FUNCTION CALLS AS PARAMETER TO FUNCTION IF NOT OBJECT, ex. nn.randInt works while funct() doesnt");
-
-                self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
+                self.expect_token(Token::RightParen)?;
 
                 Ok(Expr::FunctionCall {
                     name: ident.clone(),
@@ -637,7 +632,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_import_statement(&mut self) -> Result<Stmt, error::ParseError> {
-        self.expect_token(Token::Gyatt)?; // Move past 'gyatt'
+        self.expect_token(Token::Gyatt)?;
 
         let lib_name = if let Token::Ident(ident) = &self.current_token {
             ident.clone()

@@ -7,11 +7,12 @@ im currently implementing classes, and then imma make the SKUI (skibidi ui) more
 ## TODO:
 - Implement classes in the interpreter
 - Implement ForLoop in the interpreter
+- Implement ObjectValue support in the interpreter
 - Allow ForLoop to accept variables too after (in)
 
 ## Problems rn
 - Can't interpret class definitions
-- Line count wrong
+- Line count is wrong
 
 ```lua
 gyatt nerd
