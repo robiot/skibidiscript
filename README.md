@@ -1,8 +1,9 @@
-# skibidiscript
+# Skibidiscript
 Instead of yapping in text. Yap with this language and create something.
 
 > **friend**: Hey what are you doing tonight?
-> **unemployed friend on a tuesday afternoon**: Taking skibidiscript to the moon
+
+> 😎 **unemployed friend on a tuesday afternoon**: adding pookie classes with extreme rizz to Skibidiscript
 
 
 NOTE: this language is in progress,
@@ -15,7 +16,6 @@ im currently implementing classes, and then imma make the SKUI (skibidi ui) more
 - Allow ForLoop to accept variables too after (in)
 
 ## Problems rn
-- Can't interpret class definitions
 - Line count is wrong
 
 ```lua
