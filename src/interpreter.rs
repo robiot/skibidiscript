@@ -10,8 +10,18 @@ use {std::collections::HashMap, std::io::Write};
 pub struct Interpreter {
     pub variables: HashMap<String, Expr>,
     pub functions: HashMap<String, Vec<Stmt>>,
+    pub classes: HashMap<String, ClassDefinition>,
+    pub instances: HashMap<String, Instance>, // Instance ID, new Class()
     pub libs: HashMap<String, Library>,
     pub line: usize,
+}
+
+pub struct ClassDefinition {
+    pub functions: HashMap<String, Vec<Stmt>>, // Method name to statements
+}
+
+pub struct Instance {
+    pub variables: HashMap<String, Expr>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -26,6 +36,8 @@ impl Interpreter {
         Interpreter {
             variables: HashMap::new(),
             functions: HashMap::new(),
+            classes: HashMap::new(),
+            instances: HashMap::new(),
             libs: HashMap::new(),
             line: 0,
         }
@@ -41,12 +53,49 @@ impl Interpreter {
 
     fn execute_statement(&mut self, stmt: Stmt) -> Result<ControlFlow, error::ParseError> {
         match stmt {
+            Stmt::Class {
+                name,
+                functions,
+                line,
+            } => {
+                self.line = line;
+
+                // Create a new ClassDefinition
+                let class_definition = ClassDefinition {
+                    functions: functions
+                        .iter()
+                        .filter_map(|method| {
+                            // If the method is a Function statement, store it
+                            if let Stmt::Function {
+                                name: method_name,
+                                body,
+                                ..
+                            } = method
+                            {
+                                Some((method_name.clone(), body.clone()))
+                            } else {
+                                None // Ignore non-function statements
+                            }
+                        })
+                        .collect::<HashMap<String, Vec<Stmt>>>(),
+                };
+
+                // Store the class definition in the classes HashMap
+                self.classes.insert(name, class_definition);
+
+                Ok(ControlFlow::None)
+            }
             Stmt::Function { name, body, line } => {
                 self.line = line;
                 self.functions.insert(name, body);
                 Ok(ControlFlow::None)
             }
-            Stmt::VariableAssign { name, object: _, value, line } => {
+            Stmt::VariableAssign {
+                name,
+                object: _,
+                value,
+                line,
+            } => {
                 self.line = line;
                 let evaluated = self.evaluate_expression(value)?;
                 self.variables.insert(name, evaluated);
@@ -135,12 +184,11 @@ impl Interpreter {
             Stmt::Continue { line } => {
                 self.line = line;
                 Ok(ControlFlow::Continue)
-            } // _ => Err(error::ParseError::GeneralError {
-            //     line: self.line,
-            //     message: "Unsupported statement".to_string(),
-            // }),
-            // tmpo
-            _ => Ok(ControlFlow::None),
+            }
+            _ => Err(error::ParseError::GeneralError {
+                line: self.line,
+                message: "Unsupported statement".to_string(),
+            }),
         }
     }
 

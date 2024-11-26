@@ -36,7 +36,7 @@ pub enum Expr {
 pub enum Stmt {
     Class {
         name: String,
-        methods: Vec<Stmt>,
+        functions: Vec<Stmt>,
         line: usize,
     },
     Function {
@@ -168,7 +168,7 @@ impl<'a> Parser<'a> {
         self.expect_token(Token::LeftParen)?;
         self.expect_token(Token::RightParen)?;
 
-        let mut methods = Vec::new();
+        let mut functions = Vec::new();
         let mut has_init = false;
 
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
@@ -183,7 +183,7 @@ impl<'a> Parser<'a> {
                     has_init = true;
                 }
             }
-            methods.push(method);
+            functions.push(method);
         }
 
         if !has_init {
@@ -197,7 +197,7 @@ impl<'a> Parser<'a> {
 
         Ok(Stmt::Class {
             name,
-            methods,
+            functions,
             line: self.lexer.line,
         })
     }
@@ -422,7 +422,7 @@ impl<'a> Parser<'a> {
                 let mut expr = Expr::Ident(ident.clone());
                 self.next_token()?;
             
-                // Handle dot notation (object methods/properties)
+                // Handle dot notation (object functions/properties)
                 while self.current_token == Token::Dot {
                     self.next_token()?;
             
