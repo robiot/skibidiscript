@@ -4,8 +4,12 @@ Instead of yapping in text. Yap with this language and create something.
 NOTE: this language is in progress,
 im currently implementing classes, and then imma make the SKUI (skibidi ui) more advanced 
 
+## TODO:
+- Implement classes in the interpreter
+- Implement ForLoop in the interpreter
+- Allow ForLoop to accept variables too after (in)
+
 ## Problems rn
-- Can't assign variable to function value if function is called on object (library) status is skui.pumpEvents()
 - Can't interpret class definitions
 - Line count wrong
 

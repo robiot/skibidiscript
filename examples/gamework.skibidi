@@ -1,8 +1,8 @@
 gyatt skui
 
 -- Constants
-WIDTH is 800
-HEIGHT is 600
+WINDOW_WIDTH is 800
+WINDOW_HEIGHT is 600
 FPS is 60
 FPS is 60
 
@@ -25,12 +25,12 @@ pookie Bullet()
     cookable __edge__()
         self.x is 0
         self.y is 0
-        self.target is target
+
         self.speed is 10
 
         -- Calculate direction and velocity
-        dx is target[0] - self.x
-        dy is target[1] - self.y
+        dx is target_x - self.x
+        dy is target_y - self.y
         distance is skui.hypot(dx, dy)
 
         self.velocity_x is dx / distance * self.speed
@@ -39,16 +39,16 @@ pookie Bullet()
 
     cookable update()
         -- Move the bullet
-        self.x += self.velocity[0]
-        self.y += self.velocity[1]
+        self.x is self.x + self.velocity_x
+        self.y is self.y + self.velocity_y
 
         -- Draw bullet
-        skui.drawImage("bullet.png", self.x, self.y, 0)
+        cook skui.drawImage("bullet.png", self.x, self.y, 0)
 
         -- Remove bullet if it goes out of bounds
-        cook if self.x > WIDTH or self.x < 0 or self.y > HEIGHT or self.y < 0
-            bullets.remove(self)
-        slay
+        -- cook if self.x > WIDTH or self.x < 0 or self.y > HEIGHT or self.y < 0
+        --     bullets.remove(self)
+        -- slay
 
         -- Go through all zombies and see if colliding
     slay
@@ -69,30 +69,30 @@ slay
 -- Start game
 cookable mew()
     -- Create window
-    skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Skibidi Game")
+    cook skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Skibidi Game")
     
-    zombies.add(new Zombie(50, 50))
+    cook zombies.add(new Zombie(50, 50))
 
     skibidi(sigma) do
         status is cook skui.pumpEvents()
 
-        skui.clockTick(FPS)
+        cook skui.clockTick(FPS)
 
         -- bg color
         cook skui.goonScreen(skui.colors.DARK)
     
         -- Draw player
-        playerSpr.draw()
+        cook playerSpr.draw()
     
-        goon (bullet in bullets) do
-            bullet.update()
-        slay
+        -- goon (bullet in bullets) do
+        --     cook bullet.update()
+        -- slay
     
-        goon (zombies in zombies) do
-            zombies.update()
-        slay
+        -- goon (zombies in zombies) do
+        --     cook zombies.update()
+        -- slay
     
-        playerSpr.update()
+        cook playerSpr.update()
     
         -- Finally refresh the thing
         
