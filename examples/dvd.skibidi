@@ -40,7 +40,7 @@ cookable draw()
     cook skui.drawRect(BOX_SIZE, x, y, FG_COLOR)
 slay
 
-cookable mew()
+cookable fein()
     cook skui.createWindow(WIDTH, HEIGHT, "DVD")
 
     cook skui.setFramesPerSkibidi(FPS)

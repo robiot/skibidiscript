@@ -13,6 +13,9 @@ pub struct Interpreter {
     pub classes: HashMap<String, ClassDefinition>,
     pub instances: HashMap<String, Instance>, // Instance ID, new Class()
     pub libs: HashMap<String, Library>,
+
+    // Live runtime info
+    pub current_instance: Option<String>,
     pub line: usize,
 }
 
@@ -39,6 +42,7 @@ impl Interpreter {
             classes: HashMap::new(),
             instances: HashMap::new(),
             libs: HashMap::new(),
+            current_instance: None,
             line: 0,
         }
     }
@@ -458,41 +462,72 @@ impl Interpreter {
         object: Option<Box<Expr>>,
         args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
-        // Just library functions, for now
         if let Some(object) = object {
-            // check that object is ident
-
-            let object = if let Expr::Ident(object) = *object {
-                object
-            } else {
-                return Err(error::ParseError::GeneralError {
-                    line: self.line,
-                    message: "Object calls of other types than IDENT are not supported".to_string(),
-                });
-            };
-
-            let lib_name = object.clone();
-            let lib =
-                self.libs
-                    .get_mut(&lib_name)
-                    .ok_or_else(|| error::ParseError::GeneralError {
-                        line: self.line,
-                        message: format!("Unknown library: {}", lib_name),
+            match *object {
+                Expr::Ident(ref obj_name) if obj_name == "self" => {
+                    // Ensure we're in a method context
+                    let current_instance = self.current_instance.clone().ok_or_else(|| {
+                        error::ParseError::GeneralError {
+                            line: self.line,
+                            message: "Cannot use 'self' outside of a method context".to_string(),
+                        }
                     })?;
 
-            let func = lib
-                .functions
-                .get(&name)
-                .ok_or_else(|| error::ParseError::GeneralError {
-                    line: self.line,
-                    message: format!("Unknown function: {} on object {}", name, lib_name),
-                })?;
+                    // Lookup the current instance
+                    let _instance = self.instances.get_mut(&current_instance).ok_or_else(|| {
+                        error::ParseError::GeneralError {
+                            line: self.line,
+                            message: "Current instance not found".to_string(),
+                        }
+                    })?;
 
-            return func(
-                self,
-                args.clone(),
-                // &mut lib.state,
-            );
+
+                    // let func = instance.functions.get(&name).ok_or_else(|| {
+                    //     error::ParseError::GeneralError {
+                    //         line: self.line,
+                    //         message: format!("Unknown function: {} on object {}", name, lib_name),
+                    //     }
+                    // })?;
+
+                    // return func(
+                    //     self,
+                    //     args.clone(),
+                    //     // &mut lib.state,
+                    // );
+                    // Rest of the method call logic
+                    // ...
+
+                    // TODO: needs to get the function from the class definition somehow, currently no way to reverse lookup
+                }
+                Expr::Ident(object) => {
+                    let lib_name = object.clone();
+                    let lib = self.libs.get_mut(&lib_name).ok_or_else(|| {
+                        error::ParseError::GeneralError {
+                            line: self.line,
+                            message: format!("Unknown library: {}", lib_name),
+                        }
+                    })?;
+
+                    let func = lib.functions.get(&name).ok_or_else(|| {
+                        error::ParseError::GeneralError {
+                            line: self.line,
+                            message: format!("Unknown function: {} on object {}", name, lib_name),
+                        }
+                    })?;
+
+                    return func(
+                        self,
+                        args.clone(),
+                    );
+                }
+                _ => {
+                    return Err(error::ParseError::GeneralError {
+                        line: self.line,
+                        message: "Object calls of other types than IDENT are not supported"
+                            .to_string(),
+                    });
+                }
+            }
         }
 
         // normal function call

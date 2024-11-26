@@ -8,7 +8,7 @@ BG_COLOR is "#000000"
 FG_COLOR is "#FFFFFF"
 BULLET_COLOR is "#000000"
 
-cookable mew()
+cookable fein()
     cook skui.createWindow(WIDTH, HEIGHT, "Skibidi Game")
 
     cook skui.setFramesPerSkibidi(FPS)

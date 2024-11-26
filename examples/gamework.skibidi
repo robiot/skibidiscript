@@ -67,7 +67,7 @@ pookie Zombie()
 slay
 
 -- Start game
-cookable mew()
+cookable fein()
     -- Create window
     cook skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Skibidi Game")
     

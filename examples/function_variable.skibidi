@@ -4,7 +4,7 @@ cookable test()
     blud 0
 slay
 
-cookable mew()
+cookable fein()
     cook test(cook randInt(1,4))
 
     status is cook nerd.randInt(1, 5)

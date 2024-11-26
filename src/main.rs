@@ -66,7 +66,7 @@ fn main() {
     };
 
     // Run the mew function, which is the main function
-    match interpreter.execute_user_function("mew".to_string(), vec![]) {
+    match interpreter.execute_user_function("fein".to_string(), vec![]) {
         Ok(_) => {}
         Err(e) => {
             println!("interpreter: {}", e);

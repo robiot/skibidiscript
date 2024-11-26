@@ -21,7 +21,7 @@ im currently implementing classes, and then imma make the SKUI (skibidi ui) more
 ```lua
 gyatt nerd
 
-cookable mew()
+cookable fein()
     cook yap("Welcome to the ghost game. Get as many points as you can.")
 
     -- Define the score and default it to 0

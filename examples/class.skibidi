@@ -19,7 +19,7 @@ pookie Zombie()
 slay
 
 -- Start game
-cookable mew()
+cookable fein()
     zombie is mew Zombie()
 
     cook zombie.update()
