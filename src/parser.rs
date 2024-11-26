@@ -351,7 +351,7 @@ impl<'a> Parser<'a> {
 
     fn parse_primary(&mut self) -> Result<Expr, error::ParseError> {
         let thing = match self.current_token.clone() {
-            Token::New => {
+            Token::Mew => {
                 self.next_token()?;
                 if let Token::Ident(class_name) = &self.current_token {
                     let class_name = class_name.clone();
@@ -575,7 +575,6 @@ impl<'a> Parser<'a> {
                             }
                         }
 
-                        println!("before");
                         self.expect_token(Token::RightParen)?; // Now you can mutate self safely.
 
                         expr = Expr::FunctionCall {
@@ -736,14 +735,14 @@ impl<'a> Parser<'a> {
 
         let mut then_branch = Vec::new();
 
-        while self.current_token != Token::Ick
+        while self.current_token != Token::Cap
             && self.current_token != Token::Slay
             && self.current_token != Token::EOF
         {
             then_branch.push(self.parse_statement()?);
         }
 
-        let else_branch = if self.current_token == Token::Ick {
+        let else_branch = if self.current_token == Token::Cap {
             self.next_token()?;
             let mut else_stmts = Vec::new();
             while self.current_token != Token::Slay && self.current_token != Token::EOF {

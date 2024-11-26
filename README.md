@@ -33,7 +33,7 @@ cookable mew()
             cook yap("BOOO! A ghost. You lost with a score of:", score)
 
             blud
-        ick
+        cap
             cook yap("Not a ghost. You survived")
             score is score + 1
         slay

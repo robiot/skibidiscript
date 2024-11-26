@@ -20,14 +20,14 @@ pub enum Token {
     Rizz,
     Blud,
     Ghost,
-    Ick,
+    Cap,
     Gyatt,
     Goon,
     In,
 
     // Classes
     Pookie,
-    New,
+    Mew,
 
     // General
     Ident(String),
@@ -74,13 +74,13 @@ impl Lexer {
         keywords.insert("rizz".into(), Token::Rizz);
         keywords.insert("blud".into(), Token::Blud);
         keywords.insert("ghost".into(), Token::Ghost);
-        keywords.insert("ick".into(), Token::Ick);
+        keywords.insert("cap".into(), Token::Cap);
         keywords.insert("gyatt".into(), Token::Gyatt);
         keywords.insert("goon".into(), Token::Goon);
         keywords.insert("in".into(), Token::In);
 
         keywords.insert("pookie".into(), Token::Pookie);
-        keywords.insert("new".into(), Token::New);
+        keywords.insert("mew".into(), Token::Mew);
 
 
         Lexer {

@@ -71,7 +71,7 @@ cookable mew()
     -- Create window
     cook skui.createWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Skibidi Game")
     
-    cook zombies.add(new Zombie(50, 50))
+    cook zombies.add(mew Zombie(50, 50))
 
     skibidi(sigma) do
         status is cook skui.pumpEvents()

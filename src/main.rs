@@ -74,4 +74,6 @@ fn main() {
             return;
         }
     };
+
+    println!("{:?}", interpreter.functions);
 }

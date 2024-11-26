@@ -20,7 +20,7 @@ slay
 
 -- Start game
 cookable mew()
-    zombie is new Zombie()
+    zombie is mew Zombie()
 
     cook zombie.update()
 slay
