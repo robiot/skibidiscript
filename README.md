@@ -1,6 +1,10 @@
 # skibidiscript
 Instead of yapping in text. Yap with this language and create something.
 
+> **friend**: Hey what are you doing tonight?
+> **unemployed friend on a tuesday afternoon**: Taking skibidiscript to the moon
+
+
 NOTE: this language is in progress,
 im currently implementing classes, and then imma make the SKUI (skibidi ui) more advanced 
 
