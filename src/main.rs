@@ -75,5 +75,5 @@ fn main() {
         }
     };
 
-    println!("{:?}", interpreter.functions);
+    println!("{:#?}", interpreter.instances);
 }

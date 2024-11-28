@@ -15,16 +15,19 @@ pub struct Interpreter {
     pub libs: HashMap<String, Library>,
 
     // Live runtime info
-    pub current_instance: Option<String>,
+    pub current_instance: Option<String>, // id of the current instance
     pub line: usize,
 }
 
+#[derive(Debug)]
 pub struct ClassDefinition {
     pub functions: HashMap<String, Vec<Stmt>>, // Method name to statements
 }
 
+#[derive(Debug)]
 pub struct Instance {
     pub variables: HashMap<String, Expr>,
+    class_name: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -345,7 +348,38 @@ impl Interpreter {
                     }),
                 }
             }
-            //tmpo
+            Expr::NewInstance { class_name, args: _ } => {
+                // Look up the class definition
+                let class_def = self.classes.get(&class_name)
+                    .ok_or_else(|| error::ParseError::GeneralError {
+                        line: self.line,
+                        message: format!("Unknown class: {}", class_name),
+                    })?;
+                
+                // Create a new unique instance ID
+                let instance_id = format!("{}_{}_{}", class_name, 
+                    self.instances.len(), 
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_nanos()
+                );
+                
+                // todo: run __edge__ function with args, prob not args
+                
+                // Create and store the instance
+                let variables = HashMap::new();
+
+                let instance = Instance {
+                    variables,
+                    class_name
+                };
+
+                self.instances.insert(instance_id.clone(), instance);
+
+                // Return the instance ID as an expression
+                Ok(Expr::StringLiteral(instance_id))
+            },
             _ => Err(error::ParseError::GeneralError {
                 line: self.line,
                 message: format!("Unsupported expression {:?}", expr),

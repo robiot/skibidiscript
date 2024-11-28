@@ -22,5 +22,5 @@ slay
 cookable fein()
     zombie is mew Zombie()
 
-    cook zombie.update()
+    -- cook zombie.update()
 slay

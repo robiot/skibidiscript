@@ -172,7 +172,6 @@ impl<'a> Parser<'a> {
         let mut has_init = false;
 
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
-            println!("method: parsing");
             let method = self.parse_function()?;
             if let Stmt::Function {
                 name: ref method_name,
@@ -222,7 +221,6 @@ impl<'a> Parser<'a> {
 
         let mut body = Vec::new();
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
-            println!("function: parsing BODY");
             body.push(self.parse_statement()?);
         }
 
@@ -534,8 +532,6 @@ impl<'a> Parser<'a> {
         self.expect_token(Token::Cook)?;
 
         // The next token should be the identifier (function name).
-        println!("{:#?}", self.current_token);
-
         let ident = if let Token::Ident(ident) = &self.current_token {
             ident.clone()
         } else {
