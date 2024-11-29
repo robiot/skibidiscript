@@ -1,4 +1,7 @@
 // parser.rs
+
+// todo: (refactor) use a shared function for running function statements and checking control flow.
+
 use crate::{
     error,
     lexer::{Lexer, Token},
@@ -30,6 +33,10 @@ pub enum Expr {
         class_name: String,
         args: Vec<Expr>,
     },
+    Instance {
+        class_name: String,
+        instance_id: String,
+    }
 }
 
 #[derive(Clone, Debug)]

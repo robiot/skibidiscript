@@ -15,12 +15,18 @@ pookie Zombie()
         cook yap("Update was ran externally")
 
         cook self.test()
+        blud 20
     slay
 slay
 
 -- Start game
 cookable fein()
     zombie is mew Zombie()
+    zombie2 is mew Zombie()
+    zombie3 is mew Zombie()
+    zombie4 is mew Zombie()
 
-    -- cook zombie.update()
+    val is cook zombie.update()
+
+    cook yap(val)
 slay

@@ -348,38 +348,62 @@ impl Interpreter {
                     }),
                 }
             }
-            Expr::NewInstance { class_name, args: _ } => {
+            Expr::NewInstance {
+                class_name,
+                args: _,
+            } => {
                 // Look up the class definition
-                let class_def = self.classes.get(&class_name)
-                    .ok_or_else(|| error::ParseError::GeneralError {
+                let class_def = self.classes.get(&class_name).ok_or_else(|| {
+                    error::ParseError::GeneralError {
                         line: self.line,
                         message: format!("Unknown class: {}", class_name),
-                    })?;
-                
+                    }
+                })?;
+
                 // Create a new unique instance ID
-                let instance_id = format!("{}_{}_{}", class_name, 
-                    self.instances.len(), 
+                let instance_id = format!(
+                    "{}_{}_{}",
+                    class_name,
+                    self.instances.len(),
                     std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
                         .unwrap()
                         .as_nanos()
                 );
-                
-                // todo: run __edge__ function with args, prob not args
-                
+
+                // Run the init __edge__ function
+                if let Some(body) = class_def.functions.get("__edge__") {
+                    for stmt in body.clone() {
+                        let controlflow = self.execute_statement(stmt)?;
+
+                        match controlflow {
+                            ControlFlow::Return(value) => return Ok(value),
+                            _ => {}
+                        }
+                    }
+                } else {
+                    return Err(error::ParseError::UnknownFunction {
+                        name: "__edge__".to_string(),
+                        line: self.line,
+                    });
+                }
+
                 // Create and store the instance
                 let variables = HashMap::new();
 
                 let instance = Instance {
                     variables,
-                    class_name
+                    class_name: class_name.clone(),
                 };
 
                 self.instances.insert(instance_id.clone(), instance);
 
                 // Return the instance ID as an expression
-                Ok(Expr::StringLiteral(instance_id))
-            },
+                Ok(Expr::Instance {
+                    class_name: class_name.clone(),
+                    instance_id,
+                })
+            }
             _ => Err(error::ParseError::GeneralError {
                 line: self.line,
                 message: format!("Unsupported expression {:?}", expr),
@@ -466,6 +490,19 @@ impl Interpreter {
         Ok(arg)
     }
 
+    // pub fn execute_statements(&mut self, statements: Vec<Stmt>) -> Result<Expr, error::ParseError> {
+    //     for stmt in statements {
+    //         match self.execute_statement(stmt)? {
+    //             ControlFlow::Return(value) => {
+    //                 return Ok(value);
+    //             }
+    //             _ => {}
+    //         }
+    //     }
+
+    //     Ok(Expr::Number(0))
+    // }
+
     pub fn execute_user_function(
         &mut self,
         name: String,
@@ -497,6 +534,9 @@ impl Interpreter {
         args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
         if let Some(object) = object {
+            // gives the value of variables if defined, cant use this sorgy
+            // let object = self.evaluate_expression(*object)?;
+
             match *object {
                 Expr::Ident(ref obj_name) if obj_name == "self" => {
                     // Ensure we're in a method context
@@ -515,45 +555,71 @@ impl Interpreter {
                         }
                     })?;
 
-
-                    // let func = instance.functions.get(&name).ok_or_else(|| {
-                    //     error::ParseError::GeneralError {
-                    //         line: self.line,
-                    //         message: format!("Unknown function: {} on object {}", name, lib_name),
-                    //     }
-                    // })?;
-
-                    // return func(
-                    //     self,
-                    //     args.clone(),
-                    //     // &mut lib.state,
-                    // );
-                    // Rest of the method call logic
-                    // ...
-
                     // TODO: needs to get the function from the class definition somehow, currently no way to reverse lookup
                     // check claude, I starred a thing there
                 }
                 Expr::Ident(object) => {
-                    let lib_name = object.clone();
-                    let lib = self.libs.get_mut(&lib_name).ok_or_else(|| {
+                    let object_name = object.clone();
+                    
+                    // We could evaluate expression first, but idc
+                    if let Some(value) = self.variables.get(&object_name) {
+                        match value {
+                            Expr::Instance {
+                                class_name,
+                                instance_id,
+                            } => {
+                                let class_def = self.classes.get(class_name).ok_or_else(|| {
+                                    error::ParseError::GeneralError {
+                                        line: self.line,
+                                        message: format!("Unknown class: {}", class_name),
+                                    }
+                                })?;
+
+                                let func = class_def.functions.get(&name).ok_or_else(|| {
+                                    error::ParseError::GeneralError {
+                                        line: self.line,
+                                        message: format!("Unknown function: {} on object {}", name, object_name),
+                                    }
+                                })?;
+
+                                for stmt in func.clone() {
+                                    let controlflow = self.execute_statement(stmt)?;
+            
+                                    match controlflow {
+                                        ControlFlow::Return(value) => return Ok(value),
+                                        _ => {}
+                                    }
+                                }
+
+                                return Ok(Expr::Number(0));
+                            }
+                            _ => {
+                                return Err(error::ParseError::GeneralError {
+                                    line: self.line,
+                                    message: "Object calls of variables are only supported for instance variables."
+                                        .to_string(),
+                                });
+                            }
+                        }
+                    }
+
+                    // If it isnt a variable, it must be a library function
+
+                    let lib = self.libs.get_mut(&object_name).ok_or_else(|| {
                         error::ParseError::GeneralError {
                             line: self.line,
-                            message: format!("Unknown library: {}", lib_name),
+                            message: format!("Unknown library: {}", object_name),
                         }
                     })?;
 
                     let func = lib.functions.get(&name).ok_or_else(|| {
                         error::ParseError::GeneralError {
                             line: self.line,
-                            message: format!("Unknown function: {} on object {}", name, lib_name),
+                            message: format!("Unknown function: {} on object {}", name, object_name),
                         }
                     })?;
 
-                    return func(
-                        self,
-                        args.clone(),
-                    );
+                    return func(self, args.clone());
                 }
                 _ => {
                     return Err(error::ParseError::GeneralError {
