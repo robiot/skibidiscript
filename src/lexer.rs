@@ -14,8 +14,7 @@ pub enum Token {
     NewLine,
     Ohio,
     Suspect,
-    Then,
-    Do,
+    Eat,
     Slay,
     Rizz,
     Blud,
@@ -68,8 +67,7 @@ impl Lexer {
         keywords.insert("sigma".into(), Token::Sigma);
         keywords.insert("ohio".into(), Token::Ohio);
         keywords.insert("sus".into(), Token::Suspect);
-        keywords.insert("then".into(), Token::Then);
-        keywords.insert("do".into(), Token::Do);
+        keywords.insert("eat".into(), Token::Eat);
         keywords.insert("slay".into(), Token::Slay);
         keywords.insert("rizz".into(), Token::Rizz);
         keywords.insert("blud".into(), Token::Blud);

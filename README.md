@@ -33,7 +33,7 @@ cookable fein()
         cook yap("Infront of you are three doors.  Which one do you choose.")
         userDoor is cook yapask("1/2/3? > ")
 
-        sus(userDoor rizz badDoor) then 
+        sus(userDoor rizz badDoor) eat
             cook yap("BOOO! A ghost. You lost with a score of:", score)
 
             blud

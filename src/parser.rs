@@ -664,7 +664,7 @@ impl<'a> Parser<'a> {
 
         self.expect_token(Token::RightParen)?;
 
-        self.expect_token(Token::Do)?;
+        self.expect_token(Token::Eat)?;
 
         let mut body = Vec::new();
 
@@ -709,7 +709,7 @@ impl<'a> Parser<'a> {
         }
 
         self.expect_token(Token::RightParen)?;
-        self.expect_token(Token::Do)?;
+        self.expect_token(Token::Eat)?;
 
         let mut body = Vec::new();
         while self.current_token != Token::Slay && self.current_token != Token::EOF {
@@ -734,7 +734,7 @@ impl<'a> Parser<'a> {
 
         self.expect_token(Token::RightParen)?;
 
-        self.expect_token(Token::Then)?;
+        self.expect_token(Token::Eat)?;
 
         let mut then_branch = Vec::new();
 

@@ -538,7 +538,7 @@ impl Interpreter {
             // let object = self.evaluate_expression(*object)?;
 
             match *object {
-                Expr::Ident(ref obj_name) if obj_name == "self" => {
+                Expr::Ident(ref obj_name) if obj_name == "goat" => {
                     // Ensure we're in a method context
                     let current_instance = self.current_instance.clone().ok_or_else(|| {
                         error::ParseError::GeneralError {

@@ -19,19 +19,19 @@ cookable update_box()
     x is x + velocity_x
     y is y + velocity_y
 
-    sus(x rizz 0) then
+    sus(x rizz 0) eat
         velocity_x is 1
     slay
     
-    sus(x rizz WIDTH - BOX_SIZE) then
+    sus(x rizz WIDTH - BOX_SIZE) eat
         velocity_x is velocity_x * -1
     slay
 
-    sus(y rizz 0) then
+    sus(y rizz 0) eat
         velocity_y is 1
     slay
     
-    sus(y rizz HEIGHT - BOX_SIZE) then
+    sus(y rizz HEIGHT - BOX_SIZE) eat
         velocity_y is velocity_x * -1
     slay
 slay
@@ -56,7 +56,7 @@ cookable fein()
 
         cook draw()
 
-        sus(status rizz "exit") then 
+        sus(status rizz "exit") eat
             blud 0
         slay
 

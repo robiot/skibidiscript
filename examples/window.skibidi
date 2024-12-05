@@ -18,7 +18,7 @@ cookable fein()
 
         cook skui.goonScreen(BG_COLOR)
 
-        sus(status rizz "exit") then 
+        sus(status rizz "exit") eat
             blud 0
         slay
 
