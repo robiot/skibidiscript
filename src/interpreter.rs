@@ -548,15 +548,37 @@ impl Interpreter {
                     })?;
 
                     // Lookup the current instance
-                    let _instance = self.instances.get_mut(&current_instance).ok_or_else(|| {
+                    let instance = self.instances.get_mut(&current_instance).ok_or_else(|| {
                         error::ParseError::GeneralError {
                             line: self.line,
                             message: "Current instance not found".to_string(),
                         }
                     })?;
 
-                    // TODO: needs to get the function from the class definition somehow, currently no way to reverse lookup
-                    // check claude, I starred a thing there
+                    let class_def = self.classes.get(&instance.class_name).ok_or_else(|| {
+                        error::ParseError::GeneralError {
+                            line: self.line,
+                            message: format!("Unknown class: {}", &instance.class_name),
+                        }
+                    })?;
+
+                    let func = class_def.functions.get(&name).ok_or_else(|| {
+                        error::ParseError::GeneralError {
+                            line: self.line,
+                            message: format!("Unknown function: {} on class {}", name, &instance.class_name),
+                        }
+                    })?;
+
+                    for stmt in func.clone() {
+                        let controlflow = self.execute_statement(stmt)?;
+
+                        match controlflow {
+                            ControlFlow::Return(value) => return Ok(value),
+                            _ => {}
+                        }
+                    }
+
+                    return Ok(Expr::Number(0));
                 }
                 Expr::Ident(object) => {
                     let object_name = object.clone();
@@ -582,6 +604,11 @@ impl Interpreter {
                                     }
                                 })?;
 
+                                // set active instance, we dont handle return statements yet
+                                // todo: remove current_instance if we return from the function
+                                self.current_instance = Some(instance_id.clone());
+
+                                // I would prefer if I could put this into a separate function and cleanup
                                 for stmt in func.clone() {
                                     let controlflow = self.execute_statement(stmt)?;
             
@@ -631,6 +658,7 @@ impl Interpreter {
             }
         }
 
+        // we know for a certain that it is a normal function call
         // normal function call
         match name.as_str() {
             // convert to number

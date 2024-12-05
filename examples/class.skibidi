@@ -8,7 +8,9 @@ pookie Zombie()
     slay
    
     cookable test()
-        cook yap("Test was ran")
+        cook yap("Test was ran", self.x)
+
+        self.x is 10
     slay
 
     cookable update()
