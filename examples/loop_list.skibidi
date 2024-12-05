@@ -1,5 +1,5 @@
 cookable fein()
-    goon (bullet in ["helllo", "bye", "sussy"]) do
+    goon (bullet in ["helllo", "bye", "sussy"]) eat
         cook yap(bullet)
     slay
 slay

@@ -3,7 +3,7 @@ gyatt nerd
 cookable fein()
     index is 0
 
-    skibidi (index < 100) do 
+    skibidi (index < 100) eat
         cook yap("Hello", index)
 
         index is index + 1

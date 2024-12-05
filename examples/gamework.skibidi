@@ -73,7 +73,7 @@ cookable fein()
     
     -- cook zombies.add(mew Zombie(50, 50))
 
-    skibidi(sigma) do
+    skibidi(sigma) eat
         status is cook skui.pumpEvents()
 
         -- bg color

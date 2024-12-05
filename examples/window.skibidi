@@ -13,7 +13,7 @@ cookable fein()
 
     cook skui.setFramesPerSkibidi(FPS)
 
-    skibidi (sigma) do
+    skibidi (sigma) eat
         status is cook skui.pumpEvents()
 
         cook skui.goonScreen(BG_COLOR)
