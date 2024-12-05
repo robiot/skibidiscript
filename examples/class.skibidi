@@ -2,21 +2,21 @@ pookie Zombie()
     cookable __edge__()
         cook yap("Pookie was edged")
 
-        self.x is 0
-        self.y is 0
-        self.speed is 10
+        goat.x is 0
+        goat.y is 0
+        goat.speed is 10
     slay
    
     cookable test()
-        cook yap("Test was ran", self.x)
+        cook yap("Test was ran", goat.x)
 
-        self.x is 10
+        goat.x is 10
     slay
 
     cookable update()
         cook yap("Update was ran externally")
 
-        cook self.test()
+        cook goat.test()
         blud 20
     slay
 slay
