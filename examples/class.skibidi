@@ -1,34 +1,22 @@
 pookie Zombie()
     cookable __edge__()
-        cook yap("Pookie was edged")
-
-        goat.x is 0
-        goat.y is 0
-        goat.speed is 10
+        goat.variable is 66
     slay
    
-    cookable test()
-        cook yap("Test was ran", goat.x)
-
-        goat.x is 10
-    slay
-
-    cookable update()
-        cook yap("Update was ran externally")
-
-        cook goat.test()
-        blud 20
+    cookable run()
+        cook yap("running", goat.variable)
     slay
 slay
 
--- Start game
+-- Start
 cookable fein()
     zombie is mew Zombie()
-    zombie2 is mew Zombie()
-    zombie3 is mew Zombie()
-    zombie4 is mew Zombie()
 
-    val is cook zombie.update()
+    zombie.variable is 10
 
-    cook yap(val)
+    cook zombie.run()
+
+    zombietwo is mew Zombie()
+
+    cook zombietwo.run()
 slay

@@ -30,6 +30,15 @@ pub struct Instance {
     class_name: String,
 }
 
+#[derive(Debug)]
+pub struct Class {
+    pub functions: HashMap<String, Vec<Stmt>>,
+    pub variables: HashMap<String, Expr>,
+    pub class_name: String,
+    pub instance_id: String,
+    pub is_self: bool,
+}
+
 #[derive(Debug, PartialEq)]
 enum ControlFlow {
     Continue,
@@ -99,14 +108,84 @@ impl Interpreter {
             }
             Stmt::VariableAssign {
                 name,
-                object: _,
+                object,
                 value,
                 line,
             } => {
                 self.line = line;
                 let evaluated = self.evaluate_expression(value)?;
-                self.variables.insert(name, evaluated);
-                Ok(ControlFlow::None)
+
+                // find out if its a instance variable
+                if let Some(object) = object {
+                    match *object {
+                        Expr::Ident(object_name) if object_name == "goat" => {
+                            // Handle the special "goat" case
+                            let current_instance = self.current_instance.clone().ok_or_else(|| {
+                                error::ParseError::GeneralError {
+                                    line: self.line,
+                                    message: "Cannot use 'self' outside of a method context".to_string(),
+                                }
+                            })?;
+            
+                            let instance = self.instances.get_mut(&current_instance).ok_or_else(|| {
+                                error::ParseError::GeneralError {
+                                    line: self.line,
+                                    message: "Current instance not found".to_string(),
+                                }
+                            })?;
+            
+                            instance.variables.insert(name, evaluated);
+                            
+                            Ok(ControlFlow::None)
+                        }
+                        Expr::Ident(object_name) => {
+                            // Check if the object is a variable
+                            if let Some(value) = self.variables.get(&object_name) {
+                                match value {
+                                    Expr::Instance {
+                                        class_name:_,
+                                        instance_id,
+                                    } => {
+                                        let instance =
+                                            self.instances.get_mut(instance_id).ok_or_else(|| {
+                                                error::ParseError::GeneralError {
+                                                    line: self.line,
+                                                    message: format!(
+                                                        "Instance not found for ID: {}",
+                                                        instance_id
+                                                    ),
+                                                }
+                                            })?;
+            
+                                        instance.variables.insert(name, evaluated);
+
+                                        Ok(ControlFlow::None)
+                                    }
+                                    _ => Err(error::ParseError::GeneralError {
+                                        line: self.line,
+                                        message: "Variable definitions are only supported for instance variables."
+                                            .to_string(),
+                                    }),
+                                }
+                            } else {
+                                Err(error::ParseError::GeneralError {
+                                    line: self.line,
+                                    message: format!("Variable not found: {}", object_name),
+                                })
+                            }
+                        }
+                        _ => Err(error::ParseError::GeneralError {
+                            line: self.line,
+                            message: "Object definitions of other types than IDENT are not supported".to_string(),
+                        }),
+                    }
+                } else {
+                    // Its a normal global variable
+                    self.variables.insert(name, evaluated);
+
+
+                    Ok(ControlFlow::None)
+                }
             }
             Stmt::While {
                 condition,
@@ -348,6 +427,18 @@ impl Interpreter {
                     }),
                 }
             }
+            Expr::ObjectValue { object, name } => {
+                let class = self.get_class_from_object(&*object)?;
+
+                if let Some(value) = class.variables.get(&name) {
+                    Ok(value.clone())
+                } else {
+                    Err(error::ParseError::UnknownVariable {
+                        name,
+                        line: self.line,
+                    })
+                }
+            }
             Expr::NewInstance {
                 class_name,
                 args: _,
@@ -371,8 +462,21 @@ impl Interpreter {
                         .as_nanos()
                 );
 
-                // Run the init __edge__ function
-                if let Some(body) = class_def.functions.get("__edge__") {
+                // Create and store the instance
+                let variables = HashMap::new();
+
+                let instance = Instance {
+                    variables,
+                    class_name: class_name.clone(),
+                };
+
+                self.instances.insert(instance_id.clone(), instance);
+
+                // set the current instance
+                self.current_instance = Some(instance_id.clone());
+
+                 // Run the init __edge__ function
+                 if let Some(body) = class_def.functions.get("__edge__") {
                     for stmt in body.clone() {
                         let controlflow = self.execute_statement(stmt)?;
 
@@ -388,15 +492,7 @@ impl Interpreter {
                     });
                 }
 
-                // Create and store the instance
-                let variables = HashMap::new();
-
-                let instance = Instance {
-                    variables,
-                    class_name: class_name.clone(),
-                };
-
-                self.instances.insert(instance_id.clone(), instance);
+                self.current_instance = None;
 
                 // Return the instance ID as an expression
                 Ok(Expr::Instance {
@@ -431,6 +527,95 @@ impl Interpreter {
                 expected: Expr::Number(-1),
                 found: expr.clone(),
                 line: self.line,
+            }),
+        }
+    }
+
+    // helper
+    fn get_class_from_object(&mut self, object: &Expr) -> Result<Class, error::ParseError> {
+        match object {
+            Expr::Ident(object_name) if object_name == "goat" => {
+                // Handle the special "goat" case
+                let current_instance = self.current_instance.clone().ok_or_else(|| {
+                    error::ParseError::GeneralError {
+                        line: self.line,
+                        message: "Cannot use 'self' outside of a method context".to_string(),
+                    }
+                })?;
+
+                let instance = self.instances.get_mut(&current_instance).ok_or_else(|| {
+                    error::ParseError::GeneralError {
+                        line: self.line,
+                        message: "Current instance not found".to_string(),
+                    }
+                })?;
+
+                let class_def = self.classes.get(&instance.class_name).ok_or_else(|| {
+                    error::ParseError::GeneralError {
+                        line: self.line,
+                        message: format!("Unknown class: {}", &instance.class_name),
+                    }
+                })?;
+
+                // very inefficient, cuz who tf wants to clone all this everytime u reference it, but idc its skibidiscript.
+                Ok(Class {
+                    functions: class_def.functions.clone(),
+                    variables: instance.variables.clone(),
+                    class_name: instance.class_name.clone(),
+                    instance_id: current_instance.clone(),
+                    is_self: true,
+                })
+            }
+            Expr::Ident(object_name) => {
+                // Check if the object is a variable
+                if let Some(value) = self.variables.get(object_name) {
+                    match value {
+                        Expr::Instance {
+                            class_name,
+                            instance_id,
+                        } => {
+                            let class_def = self.classes.get(class_name).ok_or_else(|| {
+                                error::ParseError::GeneralError {
+                                    line: self.line,
+                                    message: format!("Unknown class: {}", class_name),
+                                }
+                            })?;
+
+                            let instance =
+                                self.instances.get_mut(instance_id).ok_or_else(|| {
+                                    error::ParseError::GeneralError {
+                                        line: self.line,
+                                        message: format!(
+                                            "Instance not found for ID: {}",
+                                            instance_id
+                                        ),
+                                    }
+                                })?;
+
+                            Ok(Class {
+                                functions: class_def.functions.clone(),
+                                variables: instance.variables.clone(),
+                                class_name: class_name.clone(),
+                                instance_id: instance_id.clone(),
+                                is_self: false,
+                            })
+                        }
+                        _ => Err(error::ParseError::GeneralError {
+                            line: self.line,
+                            message: "Object calls are only supported for instance variables."
+                                .to_string(),
+                        }),
+                    }
+                } else {
+                    Err(error::ParseError::GeneralError {
+                        line: self.line,
+                        message: format!("Variable not found: {}", object_name),
+                    })
+                }
+            }
+            _ => Err(error::ParseError::GeneralError {
+                line: self.line,
+                message: "Object calls of other types than IDENT are not supported".to_string(),
             }),
         }
     }
@@ -534,128 +719,36 @@ impl Interpreter {
         args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
         if let Some(object) = object {
-            // gives the value of variables if defined, cant use this sorgy
-            // let object = self.evaluate_expression(*object)?;
+            // Use the helper function
+            let class = self.get_class_from_object(&*object)?;
 
-            match *object {
-                Expr::Ident(ref obj_name) if obj_name == "goat" => {
-                    // Ensure we're in a method context
-                    let current_instance = self.current_instance.clone().ok_or_else(|| {
-                        error::ParseError::GeneralError {
-                            line: self.line,
-                            message: "Cannot use 'self' outside of a method context".to_string(),
-                        }
-                    })?;
-
-                    // Lookup the current instance
-                    let instance = self.instances.get_mut(&current_instance).ok_or_else(|| {
-                        error::ParseError::GeneralError {
-                            line: self.line,
-                            message: "Current instance not found".to_string(),
-                        }
-                    })?;
-
-                    let class_def = self.classes.get(&instance.class_name).ok_or_else(|| {
-                        error::ParseError::GeneralError {
-                            line: self.line,
-                            message: format!("Unknown class: {}", &instance.class_name),
-                        }
-                    })?;
-
-                    let func = class_def.functions.get(&name).ok_or_else(|| {
-                        error::ParseError::GeneralError {
-                            line: self.line,
-                            message: format!("Unknown function: {} on class {}", name, &instance.class_name),
-                        }
-                    })?;
-
-                    for stmt in func.clone() {
-                        let controlflow = self.execute_statement(stmt)?;
-
-                        match controlflow {
-                            ControlFlow::Return(value) => return Ok(value),
-                            _ => {}
-                        }
-                    }
-
-                    return Ok(Expr::Number(0));
-                }
-                Expr::Ident(object) => {
-                    let object_name = object.clone();
-                    
-                    // We could evaluate expression first, but idc
-                    if let Some(value) = self.variables.get(&object_name) {
-                        match value {
-                            Expr::Instance {
-                                class_name,
-                                instance_id,
-                            } => {
-                                let class_def = self.classes.get(class_name).ok_or_else(|| {
-                                    error::ParseError::GeneralError {
-                                        line: self.line,
-                                        message: format!("Unknown class: {}", class_name),
-                                    }
-                                })?;
-
-                                let func = class_def.functions.get(&name).ok_or_else(|| {
-                                    error::ParseError::GeneralError {
-                                        line: self.line,
-                                        message: format!("Unknown function: {} on object {}", name, object_name),
-                                    }
-                                })?;
-
-                                // set active instance, we dont handle return statements yet
-                                // todo: remove current_instance if we return from the function
-                                self.current_instance = Some(instance_id.clone());
-
-                                // I would prefer if I could put this into a separate function and cleanup
-                                for stmt in func.clone() {
-                                    let controlflow = self.execute_statement(stmt)?;
-            
-                                    match controlflow {
-                                        ControlFlow::Return(value) => return Ok(value),
-                                        _ => {}
-                                    }
-                                }
-
-                                return Ok(Expr::Number(0));
-                            }
-                            _ => {
-                                return Err(error::ParseError::GeneralError {
-                                    line: self.line,
-                                    message: "Object calls of variables are only supported for instance variables."
-                                        .to_string(),
-                                });
-                            }
-                        }
-                    }
-
-                    // If it isnt a variable, it must be a library function
-
-                    let lib = self.libs.get_mut(&object_name).ok_or_else(|| {
-                        error::ParseError::GeneralError {
-                            line: self.line,
-                            message: format!("Unknown library: {}", object_name),
-                        }
-                    })?;
-
-                    let func = lib.functions.get(&name).ok_or_else(|| {
-                        error::ParseError::GeneralError {
-                            line: self.line,
-                            message: format!("Unknown function: {} on object {}", name, object_name),
-                        }
-                    })?;
-
-                    return func(self, args.clone());
-                }
-                _ => {
-                    return Err(error::ParseError::GeneralError {
+            let func =
+                class
+                    .functions
+                    .get(&name)
+                    .ok_or_else(|| error::ParseError::GeneralError {
                         line: self.line,
-                        message: "Object calls of other types than IDENT are not supported"
-                            .to_string(),
-                    });
+                        message: format!(
+                            "Unknown function: {} on class {}",
+                            name, class.class_name
+                        ),
+                    })?;
+
+            if !class.is_self {
+                // Set active instance if its a instance call, but not a self one, then its already defined
+                self.current_instance = Some(class.instance_id.clone());
+            }
+
+            // Execute function statements
+            for stmt in func.clone() {
+                let controlflow = self.execute_statement(stmt)?;
+
+                if let ControlFlow::Return(value) = controlflow {
+                    return Ok(value);
                 }
             }
+
+            return Ok(Expr::Number(0)); // Default return value for functions
         }
 
         // we know for a certain that it is a normal function call

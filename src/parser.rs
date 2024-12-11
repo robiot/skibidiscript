@@ -26,7 +26,7 @@ pub enum Expr {
         right: Box<Expr>,
     },
     ObjectValue {
-        object: Option<Box<Expr>>,
+        object: Box<Expr>,
         name: String,
     },
     NewInstance {
@@ -457,7 +457,7 @@ impl<'a> Parser<'a> {
                         } else {
                             expr = Expr::ObjectValue {
                                 name: objectname.clone(),
-                                object: Some(Box::new(expr)),
+                                object: Box::new(expr),
                             };
                         }
                     } else {
