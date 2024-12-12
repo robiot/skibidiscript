@@ -1,0 +1,21 @@
+cookable fein()
+    skibidi(sigma) eat
+        value is cook aura(cook attemptrizz("Please input your guess"))
+
+        cook yap("You guessed:", value)
+
+        sus(value > 5) eat
+            cook yap("Too big")
+        slay
+
+        sus(value < 5) eat
+            cook yap("Too small")
+        slay
+
+        sus(value rizz 5) eat
+            cook yap("You guessed it!")
+
+            blud 0
+        slay
+    slay
+slay
