@@ -719,7 +719,34 @@ impl Interpreter {
         args: Vec<Expr>,
     ) -> Result<Expr, error::ParseError> {
         if let Some(object) = object {
-            // Use the helper function
+            // Firstly check if it is a lib
+            let lib_name = if let Expr::Ident(object) = *object.clone() {
+                object
+            } else {
+                return Err(error::ParseError::GeneralError {
+                    line: self.line,
+                    message: "Object calls of other types than IDENT are not supported".to_string(),
+                });
+            };
+        
+            let lib =
+                self.libs
+                    .get_mut(&lib_name);
+
+            if let Some(lib) = lib {
+                let func = lib
+                    .functions
+                    .get(&name)
+                    .ok_or_else(|| error::ParseError::GeneralError {
+                        line: self.line,
+                        message: format!("Unknown function: {} on object {}", name, lib_name),
+                    })?;
+
+                return func(self, args);
+            }
+
+            // not a lib, it is a class
+            // Use the helper function, possibly return None.
             let class = self.get_class_from_object(&*object)?;
 
             let func =

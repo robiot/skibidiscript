@@ -5,6 +5,12 @@ pookie Zombie()
    
     cookable run()
         cook yap("running", goat.variable)
+
+        cook goat.second()
+    slay
+
+    cookable second()
+        cook yap("this is second")
     slay
 slay
 
